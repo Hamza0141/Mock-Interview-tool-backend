@@ -1,67 +1,50 @@
-const conn = require("../config/db.config");
+
+const getUserByEmail= require("../services/user.Service")
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 
-// ✅ Check if a user already exists by email
-async function checkIfUserExists(email) {
-  const query = "SELECT * FROM users WHERE user_email = ?";
-  const [rows] = await conn.query(query, [email]);
-  return rows.length > 0;
-}
 
-//  Create a new user with password
-async function createUser(user) {
-  let createdUser = null;
 
+async function logIn(userData) {
   try {
-    // 1. Validate required fields before doing anything
-    if (!user.user_email || !user.user_password) {
-      throw new Error("Missing required fields: email and/or password");
+    let returnData = {}; // Object to be returned
+    const user = await getUserByEmail.getUserByEmail(userData.user_email);
+    console.log(user);
+    if (user.length === 0) {
+      returnData = {
+        status: "fail",
+        message: "user does not exist",
+      };
+      return returnData;
     }
-
-    // Optional fields: can be empty without breaking SQL
-    const firstName = user.first_name || null;
-    const lastName = user.last_name || null;
-
-    //   Generate profile_id
-    const profile_id = crypto.randomBytes(10).toString("hex");
-
-    //   Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(user.user_password, salt);
-
-    //  Insert user into `users` table
-    const userQuery = `
-      INSERT INTO users (profile_id, user_email, first_name, last_name)
-      VALUES (?, ?, ?, ?)
-    `;
-    const [userResult] = await conn.query(userQuery, [
-      profile_id,
-      user.user_email,
-      firstName,
-      lastName,
-    ]);
-    if (userResult.affectedRows !== 1) {
-      throw new Error("Failed to insert user into users table");
+    const passwordMatch = await bcrypt.compare(
+      userData.user_password,
+      user.password_hash
+    );
+    if (user.is_active !== 1) {
+      returnData = {
+        status: "fail",
+        message: "Your account is not active please contact admin",
+      };
+      return returnData;
+    } else if (!passwordMatch) {
+      returnData = {
+        status: "fail",
+        message: "Incorrect password",
+      };
+      return returnData;
     }
-    //  Insert password into `user_passwords` table
-    const passwordQuery = `
-      INSERT INTO user_passwords (profile_id, password_hash)
-      VALUES (?, ?)
-    `;
-    await conn.query(passwordQuery, [profile_id, hashedPassword]);
-
-    //  Return created user
-    createdUser = { profile_id };
-  } catch (err) {
-    console.error(" Error creating user:", err.message);
-    // We don't crash — just return null so controller can handle it
-    createdUser = null;
+   
+    returnData = {
+      status: "success",
+      data: user,
+    };
+    return returnData;
+  } catch (error) {
+    console.log(error);
   }
-
-  return createdUser;
 }
+
 module.exports = {
-  checkIfUserExists,
-  createUser,
+
+  logIn,
 };

@@ -1,4 +1,7 @@
 const express = require("express");
+
+const  FormData = require ("form-data"); // form-data v4.0.1
+const Mailgun = require("mailgun.js"); // mailgun.js v11.1.0
 // Import the dotenv module and call the config method to load the environment variables
 require("dotenv").config();
 // Import the sanitizer module
@@ -44,7 +47,6 @@ app.post("/", async (req, res) => {
   }
 });
 
-// Start the webserver
 app.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
