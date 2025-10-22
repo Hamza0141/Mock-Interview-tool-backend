@@ -1,0 +1,61 @@
+{
+    "evaluations": [
+      {
+        "asked_question": "Tell me about yourself",
+        "user_response": "My name is xyz, I am a passionate developer with strong skills in React.",
+        "ai_generated_answer": "Hi, I am xyz, a front end developer with a strong focus on React, performance and UX. I enjoy building scalable UI components, delivering responsive interfaces, and collaborating closely with backend teams. In my recent projects I worked on a reusable component library and on optimizing rendering to improve user experience.",
+        "scores": {
+          "correctness": 70,
+          "relevance": 80,
+          "depth": 30,
+          "clarity": 85,
+          "grammar": 85
+        },
+        "overall_score": 66,
+        "strengths": [
+          "Clear, relevant intro focusing on React and frontend work",
+          "Concise and confident presentation"
+        ],
+        "weaknesses": ["Lacks specific experience, projects, and outcomes"],
+        "suggestions": "Add years of experience, notable projects, and concrete outcomes with numbers."
+      },
+      {
+        "asked_question": "Describe a time you resolved a performance bottleneck in your front-end code.",
+        "user_response": "I optimized React components by using memo and lazy loading.",
+        "ai_generated_answer": "Example answer: In a dashboard with long lists I identified a bottleneck caused by unnecessary re-renders. I introduced React.memo to prevent re-renders of list items, used lazy loading to load non-critical widgets, and memoized expensive calculations with useMemo. I added lightweight profiling and measured improvements in initial render time and scrolling smoothness. The changes led to faster time to interactive and better user experience.",
+        "scores": {
+          "correctness": 50,
+          "relevance": 90,
+          "depth": 30,
+          "clarity": 80,
+          "grammar": 90
+        },
+        "overall_score": 57,
+        "strengths": ["Covers relevant techniques (memo, lazy loading)"],
+        "weaknesses": [
+          "Lacks concrete scenario, metrics, before/after impact, and scope"
+        ],
+        "suggestions": "Provide a specific bottleneck, describe the components involved, metrics improved (load time, TTI), and impact."
+      }
+    ],
+    "meta_evaluation": {
+      "average_scores": {
+        "correctness": 61.5,
+        "relevance": 85,
+        "depth": 30,
+        "clarity": 82.5,
+        "grammar": 87.5,
+        "overall": 61.5
+      },
+      "summary": "The candidate shows solid frontend knowledge with React emphasis and awareness of performance optimization. Strengths include clear communication and relevant techniques. While responses are concise and mostly relevant, depth and concrete metrics are lacking in both answers; provide more detailed examples with measurable impact to improve scores."
+    },
+    "behavioral_skill_tags": [
+      "Analytical thinking",
+      "Problem-solving",
+      "Front-end proficiency",
+      "Continuous learner",
+      "Concise communicator"
+    ],
+    "error": null
+
+}

@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "interview_id": "50f0402a69b89205",
+  "data": [
+    {
+      "id": 1,
+      "question": "Tell me about yourself"
+    },
+    {
+      "id": 2,
+      "question": "Describe a time you diagnosed and resolved a fiber outage or significant network issue (OTDR or fiber testing). What steps did you take and what was the outcome?"
+    },
+    {
+      "id": 3,
+      "question": "Explain how you use OTDR traces to locate a fiber fault. What common fault types do you encounter and which metrics do you rely on to determine root cause and severity?"
+    },
+    {
+      "id": 4,
+      "question": "Describe a situation where you had to manage Active Directory permissions for a team with varying access needs. How did you ensure security, compliance, and auditability?"
+    },
+    {
+      "id": 5,
+      "question": "Walk me through how you would design and verify LAN/WAN connectivity in a data center, including device configuration, redundancy, monitoring, and failover procedures."
+    },
+    {
+      "id": 6,
+      "question": "Tell me about a time you coordinated with field technicians or vendors to install or troubleshoot field device modems. How did you ensure quality and minimize service impact?"
+    },
+    {
+      "id": 7,
+      "question": "What are the steps you take to deploy and manage user accounts and group policies in Active Directory, including onboarding, offboarding, least privilege, and ongoing auditing?"
+    },
+    {
+      "id": 8,
+      "question": "How do you handle competing priorities in a data center when multiple services are impacted? Provide a real example and explain your decision-making process."
+    },
+    {
+      "id": 9,
+      "question": "Describe your experience with wireless communications in a data center or campus environment. How do you plan for coverage, mitigate interference, secure wireless networks, and troubleshoot connectivity issues?"
+    }
+  ]
+}

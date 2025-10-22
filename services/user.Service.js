@@ -127,7 +127,7 @@ async function createUser(user) {
     ]);
 
     //   Send OTP email
-    await otpManager(user.user_email);
+    // await otpManager(user.user_email);
 
     createdUser = {
       profile_id,

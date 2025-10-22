@@ -1,5 +1,6 @@
 
 const getUserByEmail= require("../services/user.Service")
+const conn = require("../config/db.config");
 const bcrypt = require("bcrypt");
 
 
