@@ -1,61 +1,182 @@
-{
-    "evaluations": [
-      {
-        "asked_question": "Tell me about yourself",
-        "user_response": "My name is xyz, I am a passionate developer with strong skills in React.",
-        "ai_generated_answer": "Hi, I am xyz, a front end developer with a strong focus on React, performance and UX. I enjoy building scalable UI components, delivering responsive interfaces, and collaborating closely with backend teams. In my recent projects I worked on a reusable component library and on optimizing rendering to improve user experience.",
-        "scores": {
-          "correctness": 70,
-          "relevance": 80,
-          "depth": 30,
-          "clarity": 85,
-          "grammar": 85
-        },
-        "overall_score": 66,
-        "strengths": [
-          "Clear, relevant intro focusing on React and frontend work",
-          "Concise and confident presentation"
-        ],
-        "weaknesses": ["Lacks specific experience, projects, and outcomes"],
-        "suggestions": "Add years of experience, notable projects, and concrete outcomes with numbers."
-      },
-      {
-        "asked_question": "Describe a time you resolved a performance bottleneck in your front-end code.",
-        "user_response": "I optimized React components by using memo and lazy loading.",
-        "ai_generated_answer": "Example answer: In a dashboard with long lists I identified a bottleneck caused by unnecessary re-renders. I introduced React.memo to prevent re-renders of list items, used lazy loading to load non-critical widgets, and memoized expensive calculations with useMemo. I added lightweight profiling and measured improvements in initial render time and scrolling smoothness. The changes led to faster time to interactive and better user experience.",
-        "scores": {
-          "correctness": 50,
-          "relevance": 90,
-          "depth": 30,
-          "clarity": 80,
-          "grammar": 90
-        },
-        "overall_score": 57,
-        "strengths": ["Covers relevant techniques (memo, lazy loading)"],
-        "weaknesses": [
-          "Lacks concrete scenario, metrics, before/after impact, and scope"
-        ],
-        "suggestions": "Provide a specific bottleneck, describe the components involved, metrics improved (load time, TTI), and impact."
-      }
-    ],
-    "meta_evaluation": {
-      "average_scores": {
-        "correctness": 61.5,
-        "relevance": 85,
-        "depth": 30,
-        "clarity": 82.5,
-        "grammar": 87.5,
-        "overall": 61.5
-      },
-      "summary": "The candidate shows solid frontend knowledge with React emphasis and awareness of performance optimization. Strengths include clear communication and relevant techniques. While responses are concise and mostly relevant, depth and concrete metrics are lacking in both answers; provide more detailed examples with measurable impact to improve scores."
-    },
-    "behavioral_skill_tags": [
-      "Analytical thinking",
-      "Problem-solving",
-      "Front-end proficiency",
-      "Continuous learner",
-      "Concise communicator"
-    ],
-    "error": null
 
+{
+  "evaluations": [
+    {
+      "question_id": 1,
+      "scores": {
+        "correctness": 50,
+        "relevance": 60,
+        "depth": 25,
+        "clarity": 70
+      },
+      "overall_score": 43,
+      "strengths": [
+        "Honest about experience and motivation",
+        "Clear and concise"
+      ],
+      "weaknesses": [
+        "Lacks specifics on skills or projects",
+        "Low depth for a self-intro"
+      ],
+      "suggestions": "Provide a concise career summary with 1-2 concrete examples of skills and outcomes, mentioning relevant tools/technologies."
+    },
+    {
+      "question_id": 2,
+      "scores": {
+        "correctness": 85,
+        "relevance": 90,
+        "depth": 90,
+        "clarity": 85
+      },
+      "overall_score": 78,
+      "strengths": [
+        "Concrete example with implemented techniques",
+        "Demonstrates understanding of React optimization"
+      ],
+      "weaknesses": [
+        "Lacks full context of the scenario and before/after metrics beyond the stated load time reduction"
+      ],
+      "suggestions": "Explain the problem context in more detail, include before/after metrics and any trade-offs or testing performed."
+    },
+    {
+      "question_id": 3,
+      "scores": {
+        "correctness": 90,
+        "relevance": 90,
+        "depth": 70,
+        "clarity": 90
+      },
+      "overall_score": 76,
+      "strengths": [
+        "Accurate explanation of virtual DOM and real DOM",
+        "Clear description of the diffing process"
+      ],
+      "weaknesses": [
+        "Could expand slightly on when reconciliation occurs and how keys affect ordering"
+      ],
+      "suggestions": "Add a brief example showing keys vs. index-based diffing to illustrate the concept more concretely."
+    },
+    {
+      "question_id": 4,
+      "scores": {
+        "correctness": 30,
+        "relevance": 80,
+        "depth": 25,
+        "clarity": 70
+      },
+      "overall_score": 37,
+      "strengths": ["Recognizes need for state management in large apps"],
+      "weaknesses": [
+        "Incorrect stance on Redux; uses useState for shared data, which is not best practice",
+        "Lacks discussion of scalable patterns"
+      ],
+      "suggestions": "Explain appropriate patterns for large apps (e.g., Redux Toolkit, Context + reducers, or other state libraries) and when to use each."
+    },
+    {
+      "question_id": 5,
+      "scores": {
+        "correctness": 20,
+        "relevance": 70,
+        "depth": 20,
+        "clarity": 70
+      },
+      "overall_score": 31,
+      "strengths": ["Shows awareness of responsive design goals"],
+      "weaknesses": [
+        "Lacks a structured approach (no use of media queries, flexible grids, or design systems)"
+      ],
+      "suggestions": "Describe a systematic approach: breakpoints, fluid layouts, CSS grid/flex, accessibility considerations, and testing across devices."
+    },
+    {
+      "question_id": 6,
+      "scores": {
+        "correctness": 85,
+        "relevance": 90,
+        "depth": 70,
+        "clarity": 90
+      },
+      "overall_score": 74,
+      "strengths": [
+        "Accurate description of reconciliation",
+        "Mentions use of keys"
+      ],
+      "weaknesses": [
+        "Could elaborate on how the reconciler works with fibers and scheduling"
+      ],
+      "suggestions": "Provide a brief expansion on diffing algorithm, fiber reconciliation, and how keys influence reconciliation efficiency."
+    },
+    {
+      "question_id": 7,
+      "scores": {
+        "correctness": 90,
+        "relevance": 90,
+        "depth": 75,
+        "clarity": 90
+      },
+      "overall_score": 77,
+      "strengths": [
+        "Solid understanding of XSS prevention and safe rendering",
+        "Mentions common protections (dangerouslySetInnerHTML, escaping)"
+      ],
+      "weaknesses": [
+        "Could discuss additional measures (CSP, input validation pipelines, content security policies)"
+      ],
+      "suggestions": "Include discussion of CSP headers, sanitization pipelines, and ongoing security practices beyond framework defaults."
+    },
+    {
+      "question_id": 8,
+      "scores": {
+        "correctness": 25,
+        "relevance": 80,
+        "depth": 20,
+        "clarity": 70
+      },
+      "overall_score": 34,
+      "strengths": ["Awareness of API integration needs"],
+      "weaknesses": [
+        "Shows passive approach to API work; lacks collaboration and proactive API integration practices"
+      ],
+      "suggestions": "Describe proactive collaboration with backend teams, API specification review, versioning, error handling, and how to align frontend and backend timelines."
+    },
+    {
+      "question_id": 9,
+      "scores": {
+        "correctness": 90,
+        "relevance": 90,
+        "depth": 85,
+        "clarity": 90
+      },
+      "overall_score": 80,
+      "strengths": [
+        "Strong, well-rounded list of optimization techniques",
+        "Demonstrates awareness of modern React patterns"
+      ],
+      "weaknesses": [
+        "Could mention how to measure impact and tooling for profiling"
+      ],
+      "suggestions": "Add notes on performance measurement (Profiling tools, Lighthouse, React DevTools) and how to validate improvements with data."
+    }
+  ],
+  "meta_evaluation": {
+    "average_scores": {
+      "correctness": 62.9,
+      "relevance": 82.22,
+      "depth": 53.33,
+      "clarity": 80.56,
+      "grammar": 75,
+      "overall": 59
+    },
+    "summary": "The candidate demonstrates solid knowledge of React concepts, performance optimization, and security awareness, with clear explanations in areas like reconciliation and virtual DOM. Strengths include concrete techniques and credible understanding of frontend fundamentals. Gaps appear in state management philosophy (favoring simple useState for shared state), a systematic approach to responsive design, and cross-functional collaboration, particularly with backend teams. Improvements in structure, detail, and real-world collaboration scenarios would strengthen the overall profile."
+  },
+  "behavioral_skill_tags": [
+    "Honest about experience level",
+    "Shows learning mindset",
+    "Strong problem-solving orientation",
+    "Proficient in front-end performance optimization",
+    "Solid understanding of React fundamentals",
+    "Security-conscious",
+    "Needs improvement in cross-functional collaboration"
+  ],
+  "error": null
 }
+

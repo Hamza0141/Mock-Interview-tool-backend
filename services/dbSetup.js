@@ -44,6 +44,8 @@ const interview_sessions = `CREATE TABLE IF NOT EXISTS interview_sessions (
     job_description VARCHAR(500),
     difficulty ENUM('easy','medium','hard') DEFAULT 'medium',
     status ENUM('active','completed') DEFAULT 'active',
+    meta_evaluation JSON NULL,
+    behavioral_skill_tags JSON NULL,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP NULL,
     FOREIGN KEY (user_profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
@@ -70,23 +72,22 @@ const user_responses = `CREATE TABLE IF NOT EXISTS user_responses (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id)
         REFERENCES interview_sessions(interview_id)
-        ON DELETE CASCADE,
-
-)`;
-
+        ON DELETE CASCADE
+        )`;
 
 
-const ai_responses = `CREATE TABLE IF NOT EXISTS ai_responses (
+
+const ai_question_feedback = `CREATE TABLE IF NOT EXISTS ai_question_feedback (
     id INT AUTO_INCREMENT PRIMARY KEY,
     session_id CHAR(36) NOT NULL,
-    question_id INT NOT NULL,
+    question_id INT,
     user_response_id INT,
-    ai_feedback JSON,
+    evaluation JSON,
     feedback_type ENUM('text', 'audio', 'video') DEFAULT 'text',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES interview_sessions(interview_id) ON DELETE CASCADE,
-FOREIGN KEY (session_id, question_id)
+    FOREIGN KEY (session_id, question_id)
         REFERENCES asked_questions(session_id, id)
         ON DELETE CASCADE,
     FOREIGN KEY (user_response_id) REFERENCES user_responses(id) ON DELETE CASCADE
@@ -111,7 +112,7 @@ async function createTables() {
     await connection.query(interview_sessions);
     await connection.query(asked_questions);
     await connection.query(user_responses);
-    await connection.query(ai_responses);
+    await connection.query(ai_question_feedback);
     await connection.query(verifications);
     await connection.query(user_auth);
     console.log(" All tables checked/created successfully.");

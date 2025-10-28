@@ -1,10 +1,15 @@
 const conn = require("../config/db.config");
 const evaluateWithAI = require("./ai.service");
 
-async function evaluateAndAddFeedback(req, res) {
+async function evaluateUserResponse() {
   evaluateWithAI.evaluateWithAI();
 }
 
+async function AddAIFeedback() {
+
+}
+
 module.exports = {
-  evaluateAndAddFeedback,
+  evaluateUserResponse,
+  AddAIFeedback,
 };

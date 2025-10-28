@@ -1,6 +1,7 @@
 const openai = require("../config/openai");
 
 async function generateInterviewQuestions(
+  first_name,
   jobTitle,
   jobDescription,
   difficulty
@@ -12,7 +13,7 @@ async function generateInterviewQuestions(
       
       Base the questions on this description: "${jobDescription}".
       with difficulty of: "${difficulty}".
-      make the first question "Tell me about yourself" and the rest is half behavioral and half technical(if the job is applicable).
+      make the first question " ${first_name},Tell me about yourself" and the rest is half behavioral and half technical(if the job is applicable).
       Format the response in JSON like this:
       {
   "data": [
@@ -52,19 +53,17 @@ Produce evaluations per question and one Meta Evaluation (AI-generated summary) 
 Input JSON:
 ${JSON.stringify(inputData, null, 2)}
 
+
 OUTPUT JSON SCHEMA:
 
   "evaluations": [
     {
-      "asked_question": string,
-      "user_response": string,
-      "ai_generated_answer": string,
+      "question_id": integer,
       "scores": {
         "correctness": integer,
         "relevance": integer,
         "depth": integer,
-        "clarity": integer,
-        "grammar": integer
+        "clarity": integer
       },
       "overall_score": integer,
       "strengths": [string],
@@ -111,3 +110,7 @@ RULES:
 }
 
 module.exports = { generateInterviewQuestions, evaluateWithAI };
+
+
+      // "asked_question": string,
+      // "user_response": string,

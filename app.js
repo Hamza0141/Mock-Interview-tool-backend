@@ -24,6 +24,12 @@ const router = require("./routes/index")
 // Create the webserver 
 const app = express();
 // Add the CORS middleware
+//maximum waiting time
+app.use((req, res, next) => {
+  req.setTimeout(120000); // 120 seconds (2 minutes)
+  res.setTimeout(120000);
+  next();
+});
 app.use(cors(corsOptions));
 
 // Add the express.json middleware to the application
