@@ -12,12 +12,12 @@ const mg = mailgun.client({
  * @param {string} email - Recipient email address
  * @param {string} otp - 6-digit OTP code
  */
-async function sendOTPEmail(email, otp) {
+async function sendOTPEmail(email, otp, note ) {
   try {
     const data = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
       from: `Self Mock AI <postmaster@${process.env.MAILGUN_DOMAIN}>`,
       to: [email],
-      subject: "🔐 Verify Your Email - Self Mock AI",
+      subject: `🔐 ${note} - Self Mock AI`,
       text: `Your verification code is ${otp}. It expires in 10 minutes.`,
       html: `
         <div style="
@@ -30,7 +30,7 @@ async function sendOTPEmail(email, otp) {
           margin:auto;
           box-shadow:0 4px 10px rgba(0,0,0,0.1);
         ">
-          <h2 style="color:#007bff;text-align:center;">🔐 Email Verification</h2>
+          <h2 style="color:#007bff;text-align:center;">🔐 ${note} </h2>
           <p style="font-size:16px;line-height:1.6;">
             Thank you for signing up for <b>Self Mock AI</b>!  
             To activate your account, please use the verification code below.

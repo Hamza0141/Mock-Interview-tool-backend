@@ -8,5 +8,7 @@ const userVerify = require("../services/user.Service");
 
 router.get("/api/verify-email", userVerify.verifyEmail);
 router.post("/api/user/create", userAccount.createUser);
+router.get("/api/user/getuserbyId", userAccount.getIUserByUserId);
+router.post("/api/user/passwordchange", userAccount.changePassword);
 
 module.exports = router;

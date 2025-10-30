@@ -18,6 +18,7 @@ async function logIn(req, res, next) {
         status: user.status,
         message: user.message,
       });
+      return
       // console.log(user.message);
     }
     // If successful, send a response to the client
@@ -45,9 +46,23 @@ async function logIn(req, res, next) {
     console.log(error);
   }
 }
+async function sendResetOTP(req, res) {
+  const { user_email } = req.body;
+  const response = await authService.requestPasswordReset(user_email);
+  return res.status(response.status === "success" ? 200 : 400).json(response);
+}
+
+// 2️⃣ Reset password with OTP
+async function resetPassword(req, res) {
+  const { user_email, otp_code, new_password } = req.body;
+  const response = await authService.resetPasswordWithOTP(user_email, otp_code, new_password);
+  return res.status(response.status === "success" ? 200 : 400).json(response);
+}
 
 
 
 module.exports = {
   logIn,
+  sendResetOTP,
+  resetPassword,
 };

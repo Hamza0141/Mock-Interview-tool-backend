@@ -15,6 +15,12 @@ router.use(interview);
 const evaluateInterview = require("./evaluateInterview.routes");
 router.use(evaluateInterview);
 
+const credit = require("./credit.route");
+router.use(credit);
+
+const speech = require("./speech.route");
+router.use(speech);
+
 
 const aiRoutes= require("./ai.route")
 router.use(aiRoutes);

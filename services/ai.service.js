@@ -109,7 +109,52 @@ RULES:
   }
 }
 
-module.exports = { generateInterviewQuestions, evaluateWithAI };
+async function evaluateSpeech(speechData) {
+  try {
+    const prompt = `
+SYSTEM:
+You are an expert public speaking coach and communication specialist.
+Always respond in strict JSON.
+
+USER:
+Evaluate the following speech. Provide specific, constructive feedback on structure, clarity, tone, pacing, emotional impact, and persuasiveness.
+
+Input:
+${JSON.stringify(speechData, null, 2)}
+
+OUTPUT JSON SCHEMA:
+{
+  "scores": {
+    "structure": number,
+    "clarity": number,
+    "tone": number,
+    "engagement": number,
+    "persuasiveness": number,
+    "grammar": number,
+    "overall": number
+  },
+  "strengths": [string],
+  "weaknesses": [string],
+  "suggestions": string,
+  "summary": string
+}
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(completion.choices[0].message.content);
+  } catch (error) {
+    console.error("AI Speech Evaluation error:", error);
+    return { error: error.message };
+  }
+}
+
+
+module.exports = { generateInterviewQuestions, evaluateWithAI, evaluateSpeech };
 
 
       // "asked_question": string,

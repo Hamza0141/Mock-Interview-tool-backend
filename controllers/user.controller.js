@@ -1,5 +1,6 @@
-const userService = require("../services/user.Service");
 
+const userService = require("../services/user.Service");
+const bcrypt = require("bcrypt");
 
 async function createUser(req, res) {
   console.log(req.body);
@@ -36,6 +37,84 @@ async function createUser(req, res) {
   }
 }
 
+async function getIUserByUserId(req, res) {
+  try{
+    const { userid_id } = req.body;
+    const userData = await userService.getUserById(userid_id);
+    
+    console.log(userData);
+    if(!userData){
+      return res.status(400).json({
+        error: "account doesn't exist!",
+      });
+    }else{
+      return res.status(201).json({
+        userData,
+      });
+    }
+
+  }
+  catch(err){
+
+  }
+}
+async function changePassword(req, res) {
+  try {
+    const { userEmail, current_password, new_password, reEnterpassword } =
+      req.body;
+    // 1️⃣ Validate required fields
+    if (!userEmail || !current_password || !new_password || !reEnterpassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    // 2️⃣ Check if new passwords match
+    if (new_password !== reEnterpassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Passwords do not match" });
+    }
+
+    // 3️⃣ Get user by email
+    const user = await userService.getUserByEmail(userEmail);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+console.log(user.password_hash);
+    // 4️⃣ Compare current password
+    const isMatch = await bcrypt.compare(current_password, user.password_hash);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Current password is incorrect" });
+    }
+
+    // 5️⃣ Hash and update new password
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    const result = await userService.updateUserPassword(
+      userEmail,
+      hashedPassword
+    );
+
+    if (!result.success) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to update password" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 module.exports = {
   createUser,
+  getIUserByUserId,
+  changePassword,
 };

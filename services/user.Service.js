@@ -1,7 +1,8 @@
 // Import the query function from the db.config.js file
 const conn = require("../config/db.config");
 // Import the bcrypt module
-const { sendOTPEmail } = require("../middlewares/authMailgun");
+
+const {otpManager} = require("../utils/otpManager")
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
@@ -22,12 +23,14 @@ async function verifyEmail(req, res) {
     if (record.verified)
       return res.status(400).json({ message: "Already verified" });
 
-    if (new Date(record.expires_at) < new Date())
+
+    if (new Date(record.expires_at) < new Date() || record.used)
       return res.status(400).json({ message: "Code expired" });
 
-    await conn.query("UPDATE verifications SET verified = TRUE WHERE id = ?", [
-      record.id,
-    ]);
+await conn.query(
+  "UPDATE verifications SET verified = TRUE, is_used = TRUE WHERE id = ?",
+  [record.id]
+);
     await conn.query(
       "UPDATE user_auth SET is_verified = TRUE WHERE user_email = ?",
       [user_email]
@@ -40,41 +43,36 @@ async function verifyEmail(req, res) {
     return { success: false, message: error.message };
   }
 }
-//  Utility: Generate 6-digit OTP
-async function otpManager(email) {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpQuery = `
-      INSERT INTO verifications (user_email, otp_code, expires_at)
-      VALUES (?,?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
-    `;
-  await conn.query(otpQuery, [email, otp]);
-
-  //  Send OTP email
-  await sendOTPEmail(email, otp);
-}
 
 async function checkIfUserExists(email) {
   const query = "SELECT * FROM users WHERE user_email = ?";
   const [rows] = await conn.query(query, [email]);
   return rows.length > 0;
 }
-
+async function getUserById(user_id) {
+  const query = "SELECT * FROM users WHERE profile_id = ?";
+  const [rows] = await conn.query(query, [user_id]);
+  return rows.length > 0 ? rows[0] : null;
+}
 // A function to get employee by email
 async function getUserByEmail(user_email) {
   try {
     const query = `
-      SELECT 
-        u.*, 
-        a.password_hash, a.is_active,
-        a.is_verified
-      FROM users u
-      JOIN user_auth a 
-        ON u.profile_id = a.profile_id
-      WHERE u.user_email = ?;
-    `;
+  SELECT 
+    u.profile_id,
+    u.user_email,
+    a.password_hash,
+    a.is_active,
+    a.is_verified,
+    u.credit_balance,
+    u.first_name
+  FROM users u
+  LEFT JOIN user_auth a ON u.profile_id = a.profile_id
+  WHERE u.user_email = ?
+`;
 
     const [rows] = await conn.query(query, [user_email]);
-
+console.log(rows);
     // Return single user object or null
     return rows.length ? rows[0] : null;
   } catch (error) {
@@ -126,8 +124,9 @@ async function createUser(user) {
       hashedPassword,
     ]);
 
+const note = "Verify Your Email";
     //   Send OTP email
-    // await otpManager(user.user_email);
+    await otpManager(user.user_email, note);
 
     createdUser = {
       profile_id,
@@ -140,11 +139,36 @@ async function createUser(user) {
 
   return createdUser;
 }
+// async function getUserByEmail(userEmail) {
+//   const [rows] = await conn.query("SELECT * FROM users WHERE user_email = ?", [
+//     userEmail,
+//   ]);
+//   return rows.length ? rows[0] : null;
+// }
+
+async function updateUserPassword(userEmail, hashedPassword) {
+  try {
+    const [result] = await conn.query(
+      "UPDATE user_auth SET password_hash = ?, updated_at = NOW() WHERE user_email = ?",
+      [hashedPassword, userEmail]
+    );
+    if (result.affectedRows === 0) return { success: false };
+    return { success: true };
+  } catch (err) {
+    console.error("Error updating password:", err);
+    return { success: false, error: err };
+  }
+}
+
+
 
 
 module.exports = {
+  getUserById,
   checkIfUserExists,
   getUserByEmail,
   createUser,
   verifyEmail,
+  updateUserPassword,
+
 };
