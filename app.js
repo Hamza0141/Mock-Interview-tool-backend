@@ -1,48 +1,36 @@
 const express = require("express");
-
-const  FormData = require ("form-data"); // form-data v4.0.1
-const Mailgun = require("mailgun.js"); // mailgun.js v11.1.0
-// Import the dotenv module and call the config method to load the environment variables
+const FormData = require("form-data");
+const Mailgun = require("mailgun.js");
 require("dotenv").config();
-// Import the sanitizer module
 const sanitize = require("sanitize");
-// Import the CORS module
 const cors = require("cors");
-// Set up the CORS options to allow requests from our front-end
 
-const pool = require("./config/db.config");
 const { createTables } = require("./services/dbSetup");
+const router = require("./routes/index");
 
+const app = express();
+const port = process.env.PORT;
+
+// 2-minute timeout for long-running requests (like AI eval)
+app.use((req, res, next) => {
+  req.setTimeout(120000);
+  res.setTimeout(120000);
+  next();
+});
 
 const corsOptions = {
   origin: process.env.FRONTEND_URL,
   optionsSuccessStatus: 200,
 };
 
-const router = require("./routes/index")
-
-// Create the webserver 
-const app = express();
-// Add the CORS middleware
-//maximum waiting time
-app.use((req, res, next) => {
-  req.setTimeout(120000); // 120 seconds (2 minutes)
-  res.setTimeout(120000);
-  next();
-});
 app.use(cors(corsOptions));
 
-// Add the express.json middleware to the application
+// ✅ Don’t parse JSON before Stripe webhook (handled in controller)
 app.use(express.json());
-
-
-// Add the sanitizer to the express middleware 
 app.use(sanitize.middleware);
 
-const port = process.env.PORT;
-
+// ✅ Mount main route index
 app.use(router);
-
 
 app.post("/", async (req, res) => {
   try {
@@ -54,7 +42,7 @@ app.post("/", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port: ${port}`);
+  console.log(`🚀 Server running on port: ${port}`);
 });
-// Export the webserver for use in the application
+
 module.exports = app;

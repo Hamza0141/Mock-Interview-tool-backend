@@ -160,6 +160,54 @@ async function updateUserPassword(userEmail, hashedPassword) {
   }
 }
 
+async function buyUserCredit(profile_id, amount, bought_credit, email) {
+
+  try {
+    //generate purchases_record character 
+    const purchases_record = crypto.randomBytes(8).toString("hex");
+
+    const userQuery = `
+      INSERT INTO purchases (purchases_record, user_email, first_name, last_name)
+      VALUES (?, ?, ?, ?)
+    `;
+    const [userResult] = await conn.query(userQuery, [
+      profile_id,
+      user.user_email,
+      firstName,
+      lastName,
+    ]);
+
+    if (userResult.affectedRows !== 1) {
+      throw new Error("Failed to insert user into users table");
+    }
+
+    // Insert password
+    const passwordQuery = `
+      INSERT INTO user_auth (profile_id,user_email, password_hash)
+      VALUES (?,?, ?)
+    `;
+    await conn.query(passwordQuery, [
+      profile_id,
+      user.user_email,
+      hashedPassword,
+    ]);
+
+    const note = "Verify Your Email";
+    //   Send OTP email
+    await otpManager(user.user_email, note);
+
+    createdUser = {
+      profile_id,
+      message: "User created successfully. OTP sent to email for verification.",
+    };
+  } catch (err) {
+    console.error(" Error creating user:", err.message);
+    createdUser = null;
+  }
+
+  return createdUser;
+}
+
 
 
 
@@ -170,5 +218,5 @@ module.exports = {
   createUser,
   verifyEmail,
   updateUserPassword,
-
+  buyUserCredit,
 };

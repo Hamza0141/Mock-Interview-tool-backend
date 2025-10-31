@@ -10,5 +10,6 @@ router.get("/api/verify-email", userVerify.verifyEmail);
 router.post("/api/user/create", userAccount.createUser);
 router.get("/api/user/getuserbyId", userAccount.getIUserByUserId);
 router.post("/api/user/passwordchange", userAccount.changePassword);
+router.post("/api/user/buycredit", userAccount.buyCredit);
 
 module.exports = router;

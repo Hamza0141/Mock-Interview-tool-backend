@@ -25,16 +25,17 @@ const user_auth = `CREATE TABLE IF NOT EXISTS user_auth (
     FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
-const payments = `CREATE TABLE IF NOT EXISTS payments (
+const purchases = `CREATE TABLE IF NOT EXISTS purchases (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    purchases_record VARCHAR(255),
+    transaction_id VARCHAR(255),
+    profile_id CHAR(36) NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
+    bought_credit INT,
     currency VARCHAR(10) DEFAULT 'USD',
     status ENUM('pending','completed','failed') DEFAULT 'pending',
-    provider VARCHAR(50),
-    transaction_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
 const interview_sessions = `CREATE TABLE IF NOT EXISTS interview_sessions (
@@ -139,7 +140,7 @@ async function createTables() {
   const connection = await pool.getConnection();
   try {
     await connection.query(users);
-    await connection.query(payments);
+    await connection.query(purchases);
     await connection.query(interview_sessions);
     await connection.query(asked_questions);
     await connection.query(user_responses);

@@ -1,29 +1,32 @@
 const express = require("express");
-// Call the router method from express to create the router
 const router = express.Router();
 
-
-const authRouts= require("./auth.routes")
-router.use(authRouts);
-
-const userRouts= require("./user.routes")
-router.use(userRouts);
-
+// Existing routes
+const authRoutes = require("./auth.routes");
+const userRoutes = require("./user.routes");
 const interview = require("./initiateInterview.routes");
-router.use(interview);
-
 const evaluateInterview = require("./evaluateInterview.routes");
-router.use(evaluateInterview);
-
 const credit = require("./credit.route");
-router.use(credit);
-
 const speech = require("./speech.route");
+const aiRoutes = require("./ai.route");
+
+
+const paymentRoutes = require("./payment.route");
+const webhookRoutes = require("../controllers/webhook.controller");
+
+// Mount all routes
+router.use(authRoutes);
+router.use(userRoutes);
+router.use(interview);
+router.use(evaluateInterview);
+router.use(credit);
 router.use(speech);
-
-
-const aiRoutes= require("./ai.route")
 router.use(aiRoutes);
 
+// Mount payments under /api/payments
+router.use("/api/payments", paymentRoutes);
 
-module.exports = router; 
+// Mount Stripe webhook route (separate because it needs raw body)
+router.use("/api/payments", webhookRoutes);
+
+module.exports = router;
