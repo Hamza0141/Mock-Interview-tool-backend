@@ -27,6 +27,7 @@ app.use(cors(corsOptions));
 
 // ✅ Don’t parse JSON before Stripe webhook (handled in controller)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(sanitize.middleware);
 
 // ✅ Mount main route index

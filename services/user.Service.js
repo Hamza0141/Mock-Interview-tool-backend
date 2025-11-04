@@ -1,6 +1,10 @@
 // Import the query function from the db.config.js file
 const conn = require("../config/db.config");
 // Import the bcrypt module
+// Import the jsonwebtoken module
+const jwt = require("jsonwebtoken");
+// Import the secret key from the environment variables
+const jwtSecret = process.env.JWT_SECRET;
 
 const {otpManager} = require("../utils/otpManager")
 const bcrypt = require("bcrypt");
@@ -8,41 +12,80 @@ const crypto = require("crypto");
 
 
 async function verifyEmail(req, res) {
+  console.log(req.body)
   try {
     const { user_email, otp } = req.body;
-    console.log(req.body);
 
+    // 1️⃣ Find OTP
     const [rows] = await conn.query(
       "SELECT * FROM verifications WHERE user_email = ? AND otp_code = ?",
       [user_email, otp]
     );
 
-    if (!rows.length) return res.status(400).json({ message: "Invalid code" });
+    if (!rows.length)
+      return res.status(400).json({ success: false, message: "Invalid code" });
 
     const record = rows[0];
+
     if (record.verified)
-      return res.status(400).json({ message: "Already verified" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Already verified" });
 
+    if (new Date(record.expires_at) < new Date() || record.is_used)
+      return res.status(400).json({ success: false, message: "Code expired" });
 
-    if (new Date(record.expires_at) < new Date() || record.used)
-      return res.status(400).json({ message: "Code expired" });
+    // 2️⃣ Update verification table
+    await conn.query(
+      "UPDATE verifications SET verified = TRUE, is_used = TRUE WHERE id = ?",
+      [record.id]
+    );
 
-await conn.query(
-  "UPDATE verifications SET verified = TRUE, is_used = TRUE WHERE id = ?",
-  [record.id]
-);
+    // 3️⃣ Update user table
     await conn.query(
       "UPDATE user_auth SET is_verified = TRUE WHERE user_email = ?",
       [user_email]
     );
-    return res
-      .status(200)
-      .json({ success: true, message: "Email verified successfully." });
+
+    // 4️⃣ Fetch user info to include in token
+    const [userData] = await conn.query(
+      "SELECT u.profile_id, u.first_name, u.last_name, u.user_email, a.is_verified, a.is_active FROM users u JOIN user_auth a ON u.profile_id = a.profile_id WHERE u.user_email = ?",
+      [user_email]
+    );
+
+    if (!userData.length)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const user = userData[0];
+
+    // 5️⃣ Sign JWT now that user is verified
+    const payload = {
+      profile_id: user.profile_id,
+      user_email: user.user_email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      credit_balance: 0,
+      is_active: user.is_active,
+      is_verified: user.is_verified,
+    };
+
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: "24h" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully.",
+      data: { user_token: token },
+    });
   } catch (error) {
-    console.error(" Error verifying email:", error.message);
-    return { success: false, message: error.message };
+    console.error("Error verifying email:", error.message);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during verification." });
   }
 }
+
 
 async function checkIfUserExists(email) {
   const query = "SELECT * FROM users WHERE user_email = ?";
@@ -65,7 +108,8 @@ async function getUserByEmail(user_email) {
     a.is_active,
     a.is_verified,
     u.credit_balance,
-    u.first_name
+    u.first_name,
+    u.last_name
   FROM users u
   LEFT JOIN user_auth a ON u.profile_id = a.profile_id
   WHERE u.user_email = ?

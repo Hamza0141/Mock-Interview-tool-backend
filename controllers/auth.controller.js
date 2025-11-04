@@ -13,20 +13,22 @@ async function logIn(req, res, next) {
     // Call the logIn method from the login service
     const user = await authService.logIn(userData);
     // If the employee is not found
+     console.log(user.message);
     if (user.status === "fail") {
       res.status(403).json({
         status: user.status,
         message: user.message,
       });
       return
-      // console.log(user.message);
     }
     // If successful, send a response to the client
     const payload = {
       profile_id: user.data.profile_id,
       user_email: user.data.user_email,
-      credit_balance: user.data.credit_balance,
       first_name: user.data.first_name,
+      last_name: user.data.last_name,
+      credit_balance: user.data.credit_balance,
+      
       is_active: user.data.is_active,
       is_verified: user.data.is_verified,
     };
