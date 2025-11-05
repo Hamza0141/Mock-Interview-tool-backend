@@ -7,5 +7,6 @@ const manageAccount = require("../controllers/auth.controller");
 router.post("/api/auth/login", manageAccount.logIn);
 router.post("/api/user/sendresetotp", manageAccount.sendResetOTP);
 router.post("/api/user/reset-password", manageAccount.resetPassword);
+router.post("/api/user/logout", manageAccount.logoutUser);
 // Export the router
 module.exports = router;

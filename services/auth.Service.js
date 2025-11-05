@@ -5,10 +5,9 @@ const {otpManager} = require("../utils/otpManager");
 
 async function logIn(userData) {
   try {
-    let returnData = {};
+  
     const user = await getUserByEmail.getUserByEmail(userData.user_email);
     console.log("Fetched user:", user);
-    console.log(user);
     // Handle user not found
     if (!user) {
       return {
@@ -38,13 +37,7 @@ async function logIn(userData) {
       user.password_hash
     );
 
-    // Check active status
-    if (user.is_active !== 1) {
-      return {
-        status: "fail",
-        message: "Your account is not active. Please contact admin",
-      };
-    }
+
 
     // Check if password is correct
     if (!passwordMatch) {

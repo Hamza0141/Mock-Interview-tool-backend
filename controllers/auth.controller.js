@@ -13,13 +13,12 @@ async function logIn(req, res, next) {
     // Call the logIn method from the login service
     const user = await authService.logIn(userData);
     // If the employee is not found
-     console.log(user.message);
     if (user.status === "fail") {
       res.status(403).json({
         status: user.status,
         message: user.message,
       });
-      return
+      return;
     }
     // If successful, send a response to the client
     const payload = {
@@ -28,26 +27,56 @@ async function logIn(req, res, next) {
       first_name: user.data.first_name,
       last_name: user.data.last_name,
       credit_balance: user.data.credit_balance,
-      
       is_active: user.data.is_active,
       is_verified: user.data.is_verified,
     };
     const token = jwt.sign(payload, jwtSecret, {
       expiresIn: "24h",
     });
-    console.log(token);
-    const sendBack = {
-      user_token: token,
-    };
+    // ✅ Send token securely as cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true, // prevents JS access
+      secure: false, // set to true in production (requires HTTPS)
+      sameSite: "Lax", //  "Strict" for 
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     return res.status(200).json({
-      status: "success",
-      message: "user logged in successfully",
-      data: sendBack,
+      success: true,
+      message: "User logged in successfully",
+      data: { user: payload },
     });
   } catch (error) {
     console.log(error);
   }
 }
+
+
+async function logoutUser(req, res) {
+  try {
+    // Clear the cookie that stores the JWT
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      path: "/", // must match the cookie path used during login
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (error) {
+    console.error("❌ Logout error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while logging out.",
+    });
+  }
+}
+
+
+
 async function sendResetOTP(req, res) {
   const { user_email } = req.body;
   const response = await authService.requestPasswordReset(user_email);
@@ -67,4 +96,5 @@ module.exports = {
   logIn,
   sendResetOTP,
   resetPassword,
+  logoutUser,
 };

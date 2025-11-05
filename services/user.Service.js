@@ -73,10 +73,19 @@ async function verifyEmail(req, res) {
 
     const token = jwt.sign(payload, jwtSecret, { expiresIn: "24h" });
 
+  
+    //  Send token securely as cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true, // prevents JS access
+      secure: false, // set to true in production (requires HTTPS)
+      sameSite: "Lax", // or "Strict" for even tighter CSRF protection
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     return res.status(200).json({
       success: true,
       message: "Email verified successfully.",
-      data: { user_token: token },
+      data: { user: payload },
     });
   } catch (error) {
     console.error("Error verifying email:", error.message);

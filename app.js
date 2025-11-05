@@ -1,9 +1,8 @@
 const express = require("express");
-const FormData = require("form-data");
-const Mailgun = require("mailgun.js");
 require("dotenv").config();
 const sanitize = require("sanitize");
 const cors = require("cors");
+const cookieParser = require("cookie-parser"); ;
 
 const { createTables } = require("./services/dbSetup");
 const router = require("./routes/index");
@@ -21,12 +20,14 @@ app.use((req, res, next) => {
 const corsOptions = {
   origin: process.env.FRONTEND_URL,
   optionsSuccessStatus: 200,
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
 
 // ✅ Don’t parse JSON before Stripe webhook (handled in controller)
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitize.middleware);
 
