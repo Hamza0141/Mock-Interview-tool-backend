@@ -6,7 +6,8 @@ const { saveGeneratedQuestions } = require("../services/userQuestions.service");
 async function startInterview(req, res) {
   try {
     //  Create interview session
-    const { first_name, profile_id, job_title, job_description, difficulty } =
+     const profile_id = req.user.profile_id;
+    const { first_name, job_title, job_description, difficulty } =
       req.body;
 
     const result = await createInterview.createInterview(

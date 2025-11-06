@@ -5,7 +5,8 @@ const PaymentService = require("../services/payment.service");
  */
 async function createCheckoutSession(req, res) {
   try {
-    const { profile_id, amount, bought_credit, email } = req.body;
+     const profile_id = req.user.profile_id;
+    const { amount, bought_credit, email } = req.body;
 
     if (!profile_id || !amount || !bought_credit || !email) {
       return res.status(400).json({

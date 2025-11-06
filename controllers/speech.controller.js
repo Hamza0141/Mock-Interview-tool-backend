@@ -4,7 +4,8 @@ const ai_feedback = require("./speechReturn.json");
 
 async function handleSpeechSubmission(req, res) {
   try {
-    const { profile_id, speech_title, speech_goal, speech_text } = req.body;
+     const profile_id = req.user.profile_id;
+    const { speech_title, speech_goal, speech_text } = req.body;
 
     if (!profile_id || !speech_title || !speech_goal || !speech_text)
       return res

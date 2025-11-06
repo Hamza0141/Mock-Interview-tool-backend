@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export function verifyToken(req, res, next) {
   const token = req.cookies.auth_token; //  browser automatically sent it
-  console.log(token);
+
 
   if (!token)
     return res

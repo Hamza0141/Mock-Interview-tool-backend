@@ -55,7 +55,7 @@ async function getIUserByUserId(req, res) {
 
   }
   catch(err){
-
+console.log(err)
   }
 }
 async function changePassword(req, res) {
@@ -116,7 +116,8 @@ console.log(user.password_hash);
 
 async function buyCredit(req, res) {
   try {
-    const { profile_id, amount, bought_credit, email } = req.body;
+     const profile_id = req.user.profile_id;
+    const { amount, bought_credit, email } = req.body;
 
     if (!profile_id || !amount || !bought_credit || !email) {
       return res

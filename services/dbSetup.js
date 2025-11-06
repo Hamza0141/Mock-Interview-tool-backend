@@ -116,7 +116,17 @@ const public_speeches= `CREATE TABLE IF NOT EXISTS public_speeches (
   speech_text LONGTEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
-);`
+)`
+
+const user_notes = `CREATE TABLE IF NOT EXISTS user_notes (
+  note_id INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id CHAR(36) NOT NULL,
+  note_title VARCHAR(255) NOT NULL,
+  note_label VARCHAR(255) NOT NULL,
+  note_text LONGTEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
+);`;
 const speech_feedback = `CREATE TABLE IF NOT EXISTS speech_feedback (
   id INT AUTO_INCREMENT PRIMARY KEY,
   speech_id CHAR(12) NOT NULL,
@@ -147,6 +157,7 @@ async function createTables() {
     await connection.query(ai_question_feedback);
     await connection.query(transfers);
     await connection.query(public_speeches);
+    await connection.query(user_notes);
     await connection.query(speech_feedback);
     await connection.query(verifications);
     await connection.query(user_auth);
