@@ -2,21 +2,22 @@ const creditService = require("../services/credit.service");
 
 async function transferCreditBalance(req, res) {
   try {
+    console.log(req.user.user_email);
      const sender_id = req.user.profile_id;
-    const { receiver_id, amount } = req.body;
+    const { receiver_email, amount } = req.body;
     
-    console.log(sender_id, receiver_id, amount);
+    console.log(sender_id, receiver_email, amount);
     // Basic validation
-    if (!sender_id || !receiver_id || !amount) {
+    if (!sender_id || !receiver_email || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields (sender_id, receiver_id, amount)",
+        message: "Missing required fields (sender_id, receiver_email, amount)",
       });
     }
 
     const result = await creditService.transferCredit(
       sender_id,
-      receiver_id,
+      receiver_email,
       parseFloat(amount)
     );
 
@@ -40,20 +41,18 @@ async function transferCreditBalance(req, res) {
 }
 async function transferRefundBalance(req, res) {
   try {
-    const { receiver_id, amount, description } = req.body;
+    const { receiver_email, amount, description } = req.body;
 
-    console.log(receiver_id, amount, description);
     // Basic validation
-    if (!receiver_id || !amount ) {
+    if (!receiver_email || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields (amount, receiver_id )",
+        message: "Missing required fields (amount, receiver_email )",
       });
     }
 
     const result = await creditService.refundCredit(
-  
-      receiver_id,
+      receiver_email,
       parseFloat(amount),
       description
     );

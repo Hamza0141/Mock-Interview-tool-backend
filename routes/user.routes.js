@@ -10,7 +10,9 @@ const  {verifyToken}  = require ( "../middlewares/auth");
 router.post("/api/verify-email", userVerify.verifyEmail);
 router.post("/api/user/create", userAccount.createUser);
 router.get("/api/user/getuserbyId", verifyToken, userAccount.getIUserByUserId);
+router.post("/api/user/getUserByEmail", verifyToken, userAccount.getUserWithEmail);
 router.post("/api/user/passwordchange", verifyToken ,userAccount.changePassword);
+router.put("/api/user/update", verifyToken, userAccount.updateUserInfo);
 
 
 

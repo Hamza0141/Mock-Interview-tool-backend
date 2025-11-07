@@ -39,7 +39,8 @@ async function createUser(req, res) {
 
 async function getIUserByUserId(req, res) {
   try{
-    const { userid_id } = req.body;
+    // const { userid_id } = req.body;
+    const userid_id= req.user.profile_id
     const userData = await userService.getUserById(userid_id);
     
     console.log(userData);
@@ -58,25 +59,52 @@ async function getIUserByUserId(req, res) {
 console.log(err)
   }
 }
+async function getUserWithEmail(req, res) {
+  try {
+console.log(req.body);
+    const user_email = req.body.user_email;
+    const userData = await userService.getUserByEmail(user_email);
+
+    if (!userData) {
+      return res.status(400).json({
+        error: "account doesn't exist!",
+      });
+    } 
+    
+    const userinfo = {
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      user_email: userData.user_email,
+    };
+    
+      return res.status(201).json({
+        userinfo,
+      });
+    
+  } catch (err) {
+    console.log(err);
+  }
+}
 async function changePassword(req, res) {
   try {
+    console.log(req.body);
     const { userEmail, current_password, new_password, reEnterpassword } =
       req.body;
-    // 1️⃣ Validate required fields
+    //  Validate required fields
     if (!userEmail || !current_password || !new_password || !reEnterpassword) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
     }
 
-    // 2️⃣ Check if new passwords match
+    //  Check if new passwords match
     if (new_password !== reEnterpassword) {
       return res
         .status(400)
         .json({ success: false, message: "Passwords do not match" });
     }
 
-    // 3️⃣ Get user by email
+    //  Get user by email
     const user = await userService.getUserByEmail(userEmail);
     if (!user) {
       return res
@@ -84,7 +112,7 @@ async function changePassword(req, res) {
         .json({ success: false, message: "User not found" });
     }
 console.log(user.password_hash);
-    // 4️⃣ Compare current password
+    //  Compare current password
     const isMatch = await bcrypt.compare(current_password, user.password_hash);
     if (!isMatch) {
       return res
@@ -92,7 +120,7 @@ console.log(user.password_hash);
         .json({ success: false, message: "Current password is incorrect" });
     }
 
-    // 5️⃣ Hash and update new password
+    //  Hash and update new password
     const hashedPassword = await bcrypt.hash(new_password, 10);
     const result = await userService.updateUserPassword(
       userEmail,
@@ -111,6 +139,43 @@ console.log(user.password_hash);
   } catch (error) {
     console.error("Error changing password:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+async function updateUserInfo(req, res) {
+  try {
+         const profile_id = req.user.profile_id;
+    const { first_name, last_name, work, profile_url } = req.body;
+
+    if (!profile_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing profile_id",
+      });
+    }
+
+    // Pass only fields that are allowed to update
+    const updateData = { first_name, last_name, work, profile_url };
+
+    const updatedUser = await userService.updateUser(updateData, profile_id);
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found or no changes made",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("❌ Error in updateUserInfo:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating user info",
+    });
   }
 }
 
@@ -167,4 +232,6 @@ module.exports = {
   getIUserByUserId,
   changePassword,
   buyCredit,
+  updateUserInfo,
+  getUserWithEmail,
 };

@@ -2,13 +2,13 @@ const conn = require("../config/db.config");
 const userService = require("./user.Service");
 const crypto = require("crypto");
 
-async function transferCredit(sender_id, receiver_id, amount) {
+async function transferCredit(sender_id, receiver_email, amount) {
   const connection = await conn.getConnection(); // get pooled connection
   await connection.beginTransaction();
 
   try {
     // Validate receiver exists
-    const receiver = await userService.getUserById(receiver_id);
+    const receiver = await userService.getUserByEmail(receiver_email);
     if (!receiver) {
       await connection.rollback();
       return { success: false, message: "Receiver does not exist" };
@@ -46,15 +46,15 @@ async function transferCredit(sender_id, receiver_id, amount) {
 
     // Add to receiver
     await connection.query(
-      "UPDATE users SET credit_balance = credit_balance + ? WHERE profile_id = ?",
-      [amount, receiver_id]
+      "UPDATE users SET credit_balance = credit_balance + ? WHERE user_email = ?",
+      [amount, receiver_email]
     );
 
     const transfer_id = crypto.randomBytes(6).toString("hex");
     
 await connection.query(
-  "INSERT INTO transfers (transfer_id, sender_id, receiver_id, amount) VALUES (?, ?, ?, ?)",
-  [transfer_id, sender_id || null, receiver_id, amount]
+  "INSERT INTO transfers (transfer_id, sender_id, receiver_email, amount) VALUES (?, ?, ?, ?)",
+  [transfer_id, sender_id || null, receiver_email, amount]
 );
     await connection.commit();
 
@@ -63,7 +63,7 @@ await connection.query(
       message: "Transfer completed",
       data: {
         sender_id,
-        receiver_id,
+        receiver_email,
         transfer_id,
         amount,
         new_sender_balance: senderCredits - amount,
@@ -79,25 +79,21 @@ await connection.query(
 }
 
 
-async function refundCredit(
-  receiver_id,
-  amount,
-  description
-) {
+async function refundCredit(receiver_email, amount, description) {
   const connection = await conn.getConnection();
   await connection.beginTransaction();
 
   try {
     // Add credit to receiver
     await connection.query(
-      "UPDATE users SET credit_balance = credit_balance + ? WHERE profile_id = ?",
-      [amount, receiver_id]
+      "UPDATE users SET credit_balance = credit_balance + ? WHERE user_email = ?",
+      [amount, receiver_email]
     );
 
     const transfer_id = crypto.randomBytes(6).toString("hex");
     await connection.query(
-      "INSERT INTO transfers (transfer_id, sender_id, receiver_id, amount, transaction_type, description) VALUES (?, NULL, ?, ?, 'refund', ?)",
-      [transfer_id, receiver_id, amount, description]
+      "INSERT INTO transfers (transfer_id, sender_id, receiver_email, amount, transaction_type, description) VALUES (?, NULL, ?, ?, 'refund', ?)",
+      [transfer_id, receiver_email, amount, description]
     );
 
     await connection.commit();

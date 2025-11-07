@@ -7,6 +7,8 @@ const users = `CREATE TABLE IF NOT EXISTS users (
     user_email VARCHAR(255) NOT NULL UNIQUE,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
+    work VARCHAR(100),
+    profile_url VARCHAR(300),
     credit_balance INT DEFAULT 0,
     free_trial INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -98,14 +100,14 @@ const transfers = `CREATE TABLE IF NOT EXISTS transfers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   transfer_id CHAR(12) NOT NULL UNIQUE,
   sender_id CHAR(36) NULL,
-  receiver_id CHAR(36) NOT NULL,
+  receiver_email CHAR(36) NOT NULL,
   amount INT NOT NULL,
   transaction_type ENUM('transfer', 'refund') DEFAULT 'transfer',
   status ENUM('pending', 'completed', 'failed') DEFAULT 'completed',
   description VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (sender_id) REFERENCES users(profile_id) ON DELETE SET NULL ON UPDATE CASCADE,
-  FOREIGN KEY (receiver_id) REFERENCES users(profile_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (receiver_email) REFERENCES users(user_email) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 const public_speeches= `CREATE TABLE IF NOT EXISTS public_speeches (
   id INT AUTO_INCREMENT PRIMARY KEY,

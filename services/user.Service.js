@@ -102,7 +102,15 @@ async function checkIfUserExists(email) {
   return rows.length > 0;
 }
 async function getUserById(user_id) {
-  const query = "SELECT * FROM users WHERE profile_id = ?";
+  const query = `
+    SELECT 
+      u.*, 
+      ua.is_active, 
+      ua.is_verified
+    FROM users u
+    JOIN user_auth ua ON u.profile_id = ua.profile_id
+    WHERE u.profile_id = ?
+  `;
   const [rows] = await conn.query(query, [user_id]);
   return rows.length > 0 ? rows[0] : null;
 }
@@ -192,12 +200,7 @@ const note = "Verify Your Email";
 
   return createdUser;
 }
-// async function getUserByEmail(userEmail) {
-//   const [rows] = await conn.query("SELECT * FROM users WHERE user_email = ?", [
-//     userEmail,
-//   ]);
-//   return rows.length ? rows[0] : null;
-// }
+
 
 async function updateUserPassword(userEmail, hashedPassword) {
   try {
@@ -212,6 +215,53 @@ async function updateUserPassword(userEmail, hashedPassword) {
     return { success: false, error: err };
   }
 }
+
+async function updateUser(updateData, profile_id) {
+  try {
+    const fields = [];
+    const values = [];
+
+    // Build the update query dynamically (excluding email)
+    if (updateData.first_name) {
+      fields.push("first_name = ?");
+      values.push(updateData.first_name);
+    }
+    if (updateData.last_name) {
+      fields.push("last_name = ?");
+      values.push(updateData.last_name);
+    }
+    if (updateData.work) {
+      fields.push("work = ?");
+      values.push(updateData.work);
+    }
+    if (updateData.profile_url) {
+      fields.push("profile_url = ?");
+      values.push(updateData.profile_url);
+    }
+
+    if (fields.length === 0) return null;
+
+    values.push(profile_id);
+
+    const sql = `UPDATE users SET ${fields.join(", ")} WHERE profile_id = ?`;
+    const [result] = await conn.query(sql, values);
+
+    if (result.affectedRows === 0) return null;
+
+    // Fetch updated user
+    const [rows] = await conn.query(
+      `SELECT profile_id, user_email, first_name, last_name, work, profile_url, credit_balance, free_trial, created_at, updated_at 
+       FROM users WHERE profile_id = ?`,
+      [profile_id]
+    );
+
+    return rows[0] || null;
+  } catch (error) {
+    console.error("❌ Service error (updateUser):", error.message);
+    throw error;
+  }
+}
+
 
 async function buyUserCredit(profile_id, amount, bought_credit, email) {
 
@@ -272,4 +322,5 @@ module.exports = {
   verifyEmail,
   updateUserPassword,
   buyUserCredit,
+  updateUser,
 };
