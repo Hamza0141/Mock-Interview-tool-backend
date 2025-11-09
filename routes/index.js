@@ -10,6 +10,7 @@ const credit = require("./credit.route");
 const speech = require("./speech.route");
 const aiRoutes = require("./ai.route");
 const userNotes = require("./userNote.routes");
+const questionsAndFeedbacks = require("./questionsAndFeedbacks.route");
 
 
 
@@ -25,6 +26,7 @@ router.use(credit);
 router.use(speech);
 router.use(aiRoutes);
 router.use(userNotes);
+router.use(questionsAndFeedbacks);
 
 
 

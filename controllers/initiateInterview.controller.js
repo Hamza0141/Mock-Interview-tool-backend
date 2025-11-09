@@ -25,12 +25,12 @@ async function startInterview(req, res) {
     const session_id = result.interview_id;
 
     //  Generate AI-based interview questions
-    const questions = await prepareQuestions.generateInterviewQuestions(
-         first_name,
-          job_title,
-          job_description,
-          difficulty
-        );
+    // const questions = await prepareQuestions.generateInterviewQuestions(
+    //      first_name,
+    //       job_title,
+    //       job_description,
+    //       difficulty
+    //     );
 
         //  Save questions into DB
         await saveGeneratedQuestions(

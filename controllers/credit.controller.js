@@ -3,20 +3,29 @@ const creditService = require("../services/credit.service");
 async function transferCreditBalance(req, res) {
   try {
     console.log(req.user.user_email);
-     const sender_id = req.user.profile_id;
+
+      const {user_email,profile_id} = req.user
     const { receiver_email, amount } = req.body;
     
-    console.log(sender_id, receiver_email, amount);
+    console.log(profile_id, receiver_email, amount);
     // Basic validation
-    if (!sender_id || !receiver_email || !amount) {
+        if (receiver_email == user_email) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "you can't transfer for your self",
+          });
+        } 
+
+    if (!profile_id || !receiver_email || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields (sender_id, receiver_email, amount)",
+        message: "Missing required fields (profile_id, receiver_email, amount)",
       });
     }
 
     const result = await creditService.transferCredit(
-      sender_id,
+      profile_id,
       receiver_email,
       parseFloat(amount)
     );

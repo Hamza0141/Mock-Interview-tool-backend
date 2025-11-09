@@ -1,13 +1,14 @@
 const UserResponses = require("../services/userResponse.service");
 const evaluator = require("../services/ai.service");
-const answer = require("./answer.json")
+// const aiFeedback = require("./answer.json");
 // const answer = require("./answer.json")
 const insertAiFeedback = require("../services/aiFeedback.service");
 
 async function evaluateAndAddFeedback(req, res) {
   try {
     const { first_name, session_id, asked_questions } = req.body;
-
+    console.log("evaluation");
+    console.log(req.body);
     if (
       !session_id ||
       !Array.isArray(asked_questions) ||
