@@ -1,7 +1,6 @@
 const UserResponses = require("../services/userResponse.service");
 const evaluator = require("../services/ai.service");
 // const aiFeedback = require("./answer.json");
-// const answer = require("./answer.json")
 const insertAiFeedback = require("../services/aiFeedback.service");
 
 async function evaluateAndAddFeedback(req, res) {

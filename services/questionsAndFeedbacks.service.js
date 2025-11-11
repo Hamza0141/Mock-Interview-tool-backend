@@ -38,31 +38,37 @@ async function getFeedbackBySessionId(interview_id) {
   try {
     const [rows] = await conn.query(
       `SELECT 
-         s.interview_id,
-         s.user_profile_id,
-         s.job_title,
-         s.job_description,
-         s.difficulty,
-         s.status,
-         s.meta_evaluation,
-         s.behavioral_skill_tags,
-         s.started_at,
-         s.ended_at,
-         JSON_ARRAYAGG(
-           JSON_OBJECT(
-             'question_id', f.question_id,
-             'feedback_id', f.id,
-             'evaluation', f.evaluation,
-             'created_at', f.created_at
-           )
-         ) AS ai_feedbacks
-       FROM interview_sessions AS s
-       LEFT JOIN (
-         SELECT * FROM ai_question_feedback ORDER BY question_id ASC
-       ) AS f
-         ON s.interview_id = f.session_id
-       WHERE s.interview_id = ?
-       GROUP BY s.interview_id`,
+  s.interview_id,
+  s.user_profile_id,
+  s.job_title,
+  s.job_description,
+  s.difficulty,
+  s.status,
+  s.meta_evaluation,
+  s.behavioral_skill_tags,
+  s.started_at,
+  s.ended_at,
+  JSON_ARRAYAGG(
+    JSON_OBJECT(
+      'question_id', f.question_id,
+      'question_text', q.question_text,
+      'user_response', r.user_response,
+      'feedback_id', f.id,
+      'evaluation', f.evaluation,
+      'created_at', f.created_at
+    )
+  ) AS ai_feedbacks
+FROM interview_sessions AS s
+LEFT JOIN (
+  ai_question_feedback AS f
+  LEFT JOIN asked_questions AS q 
+    ON f.question_id = q.id AND f.session_id = q.session_id
+  LEFT JOIN user_responses AS r 
+    ON f.session_id = r.session_id AND f.question_id = r.question_id
+)
+ON s.interview_id = f.session_id
+WHERE s.interview_id = ?
+GROUP BY s.interview_id`,
       [interview_id]
     );
 
@@ -76,7 +82,6 @@ async function getFeedbackBySessionId(interview_id) {
 
     const row = rows[0];
 
-    // ✅ Safely parse only ai_feedbacks array
     let feedbacks = [];
     try {
       const parsed =
@@ -86,8 +91,9 @@ async function getFeedbackBySessionId(interview_id) {
 
       feedbacks = (parsed || []).map((fb) => ({
         question_id: fb.question_id,
+        question_text: fb.question_text,
+        user_response: fb.user_response,
         feedback_id: fb.feedback_id,
-        // ✅ evaluation is already an object (no parse)
         evaluation: fb.evaluation,
         created_at: fb.created_at,
       }));
@@ -127,6 +133,8 @@ async function getFeedbackBySessionId(interview_id) {
     };
   }
 }
+
+
 
 
 

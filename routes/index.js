@@ -11,6 +11,7 @@ const speech = require("./speech.route");
 const aiRoutes = require("./ai.route");
 const userNotes = require("./userNote.routes");
 const questionsAndFeedbacks = require("./questionsAndFeedbacks.route");
+const voiceTranscription = require("./voice.route");
 
 
 
@@ -27,6 +28,7 @@ router.use(speech);
 router.use(aiRoutes);
 router.use(userNotes);
 router.use(questionsAndFeedbacks);
+router.use(voiceTranscription);
 
 
 
