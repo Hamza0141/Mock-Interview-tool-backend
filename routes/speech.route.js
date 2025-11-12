@@ -8,5 +8,12 @@ router.post(
   "/api/user/speech",
   verifyToken ,SpeechController.handleSpeechSubmission
 );
+router.get(
+  "/api/user/speech/:speech_id",
+  verifyToken,
+  SpeechController.getSpeechFeedById
+);
+
+
 
 module.exports = router;

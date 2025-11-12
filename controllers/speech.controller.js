@@ -1,10 +1,9 @@
 const SpeechService = require("../services/speech.service");
-const SpeechEvaluator = require("../services/ai.service");
-const ai_feedback = require("./speechReturn.json");
+// const ai_feedback = require("./speechReturn.json");
 
 async function handleSpeechSubmission(req, res) {
   try {
-     const profile_id = req.user.profile_id;
+    const profile_id = req.user.profile_id;
     const { speech_title, speech_goal, speech_text } = req.body;
 
     if (!profile_id || !speech_title || !speech_goal || !speech_text)
@@ -12,7 +11,7 @@ async function handleSpeechSubmission(req, res) {
         .status(400)
         .json({ success: false, message: "Missing fields" });
 
-    // ✅ Validate before processing
+    // Validate before processing
     const validationResult = await SpeechService.validation(profile_id);
     if (!validationResult.success) {
       return res.status(400).json(validationResult);
@@ -26,17 +25,14 @@ async function handleSpeechSubmission(req, res) {
     );
 
     if (!success) return res.status(500).json({ success: false, message });
-
+    const speechData = req.body;
     // 2️⃣ Evaluate speech via AI
-    // const ai_feedback = await SpeechEvaluator.evaluateSpeech({
-    //   speech_id,
-    //   speech_title,
-    //   speech_goal,
-    //   speech_text,
-    // });
+    const ai_feedback = await SpeechService.evaluateSpeech({
+      speechData,
+    });
 
     // 3️⃣ Save AI feedback
-    await SpeechService.saveFeedback(speech_id, ai_feedback);
+    await SpeechService.saveFeedback(speech_id, speech_title, ai_feedback);
 
     res.status(201).json({
       success: true,
@@ -49,4 +45,24 @@ async function handleSpeechSubmission(req, res) {
   }
 }
 
-module.exports = { handleSpeechSubmission };
+async function getSpeechFeedById(req, res) {
+ try {
+    const { speech_id } = req.params;
+
+
+    const data = await SpeechService.getSpeechWithFeedback(speech_id);
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        message: "Speech not found",
+      });
+    }
+
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("❌ Speech evaluation error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+module.exports = { handleSpeechSubmission, getSpeechFeedById };

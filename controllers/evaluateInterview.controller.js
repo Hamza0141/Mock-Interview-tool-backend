@@ -1,11 +1,11 @@
-const UserResponses = require("../services/userResponse.service");
-const evaluator = require("../services/ai.service");
+
+const evaluator = require("../services/evaluateInterview.service");
 // const aiFeedback = require("./answer.json");
-const insertAiFeedback = require("../services/aiFeedback.service");
 
 async function evaluateAndAddFeedback(req, res) {
   try {
     const { first_name, session_id, asked_questions } = req.body;
+      const inputData = req.body;
     console.log("evaluation");
     console.log(req.body);
     if (
@@ -20,7 +20,7 @@ async function evaluateAndAddFeedback(req, res) {
     }
 
     // 1️⃣ Insert user responses first
-    const result = await UserResponses.insertUserResponses(
+    const result = await evaluator.insertUserResponses(
       session_id,
       asked_questions
     );
@@ -35,15 +35,13 @@ async function evaluateAndAddFeedback(req, res) {
 
     // 2️⃣ Evaluate all questions together
     const aiFeedback = await evaluator.evaluateWithAI({
-      first_name,
-      session_id,
-      asked_questions,
+      inputData,
     });
 //  const aiFeedback = await answer
    console.log(aiFeedback);
 
     // 3️⃣ Insert the entire AI feedback JSON in DB
-const insertResult = await insertAiFeedback.insertAiFeedback(
+const insertResult = await evaluator.insertAiFeedback(
   session_id,
   aiFeedback.question_id,
   aiFeedback.user_response_id,

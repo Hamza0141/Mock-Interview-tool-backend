@@ -1,5 +1,6 @@
 const conn = require("../config/db.config");
 const crypto = require("crypto");
+const openai = require("../config/openai");
 
 async function createInterview(
   profile_id,
@@ -67,6 +68,84 @@ async function createInterview(
   }
 }
 
+
+async function generateInterviewQuestions(
+  first_name,
+  jobTitle,
+  jobDescription,
+  difficulty
+) {
+  try {
+    const prompt = `
+      You are an expert HR interviewer.
+      Generate 9 thoughtful, realistic interview questions for a job seeker applying for the position of "${jobTitle}".
+      
+      Base the questions on this description: "${jobDescription}".
+      with difficulty of: "${difficulty}".
+      make the first question " ${first_name},Tell me about yourself" and the rest is half behavioral and half technical(if the job is applicable).
+      Format the response in JSON like this:
+      {
+  "data": [
+    {"id": 1, "question": "..."},
+    {"id": 2, "question": "..."},
+    ...
+  ]
+}
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0].message.content;
+    return JSON.parse(content); // Return parsed JSON
+  } catch (error) {
+    console.error("Error generating interview questions:", error.message);
+    throw new Error("Failed to generate interview questions");
+  }
+}
+
+async function saveGeneratedQuestions(
+  user_profile_id,
+  session_id,
+  job_role,
+  questions
+) {
+  try {
+    if (!questions || !Array.isArray(questions)) {
+      throw new Error("Invalid question format");
+    }
+
+    const insertQuery = `
+      INSERT INTO asked_questions (id, user_profile_id, session_id, job_role, question_text)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    for (const q of questions) {
+      await conn.query(insertQuery, [
+        q.id,
+        user_profile_id,
+        session_id,
+        job_role,
+        q.question,
+      ]);
+    }
+
+    console.log(
+      ` ${questions.length} questions saved for session ${session_id}`
+    );
+    return { success: true, message: "Questions saved successfully" };
+  } catch (error) {
+    console.error(" Error saving generated questions:", error.message);
+    return { success: false, message: error.message };
+  }
+}
+
+
 module.exports = {
   createInterview,
+  generateInterviewQuestions,
+  saveGeneratedQuestions,
 };

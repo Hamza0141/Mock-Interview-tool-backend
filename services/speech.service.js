@@ -1,5 +1,6 @@
 const conn = require("../config/db.config");
 const crypto = require("crypto");
+const openai = require("../config/openai");
 
 async function validation(profile_id) {
   try {
@@ -66,12 +67,63 @@ async function submitSpeech(
   }
 }
 
-async function saveFeedback(speech_id, ai_feedback) {
+async function evaluateSpeech(speechData) {
+  try {
+    const prompt = `
+SYSTEM:
+You are an expert public speaking coach and communication specialist.
+Always respond in strict JSON.
+
+USER:
+Evaluate the following speech. Provide specific, constructive feedback on structure, clarity, tone, pacing, emotional impact, and persuasiveness.
+
+Input:
+${JSON.stringify(speechData, null, 2)}
+
+OUTPUT JSON SCHEMA:
+{
+  "scores": {
+    "structure": number,
+    "clarity": number,
+    "tone": number,
+    "engagement": number,
+    "persuasiveness": number,
+    "grammar": number,
+    "overall": number
+  },
+  "strengths": [string],
+  "weaknesses": [string],
+  "suggestions": string,
+  "summary": string
+}
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(completion.choices[0].message.content);
+  } catch (error) {
+    console.error("AI Speech Evaluation error:", error);
+    return { error: error.message };
+  }
+}
+
+
+
+async function saveFeedback(speech_id, speech_title, ai_feedback) {
   const connection = await conn.getConnection();
   try {
     await connection.query(
-      "INSERT INTO speech_feedback (speech_id, ai_feedback) VALUES (?, ?)",
-      [speech_id, JSON.stringify(ai_feedback)]
+      "INSERT INTO speech_feedback (speech_id, speech_title, ai_feedback, status) VALUES (?, ?, ?, 'completed')",
+      [speech_id, speech_title, JSON.stringify(ai_feedback)]
+    );
+
+    await connection.query(
+      "UPDATE public_speeches SET status = 'completed' WHERE speech_id = ?",
+      [speech_id]
     );
   } catch (error) {
     console.error("Error saving feedback:", error);
@@ -79,5 +131,54 @@ async function saveFeedback(speech_id, ai_feedback) {
     connection.release();
   }
 }
+async function getSpeechWithFeedback(speech_id) {
+  const query = `
+    SELECT 
+      ps.speech_id,
+      ps.profile_id,
+      ps.speech_title,
+      ps.speech_goal,
+      ps.speech_text,
+      ps.status AS speech_status,
+      ps.created_at AS speech_created_at,
+      sf.ai_feedback,
+      sf.status AS feedback_status,
+      sf.created_at AS feedback_created_at
+    FROM public_speeches ps
+    LEFT JOIN speech_feedback sf
+      ON ps.speech_id = sf.speech_id
+    WHERE ps.speech_id = ?
+    ORDER BY ps.created_at DESC
+  `;
 
-module.exports = { submitSpeech, saveFeedback, validation };
+  try {
+    const [rows] = await conn.execute(query, [speech_id]);
+
+    // If no speech found
+    if (rows.length === 0) {
+      return null;
+    }
+
+    // Normalize JSON output (parse ai_feedback if not null)
+    const result = rows[0];
+    if (result.ai_feedback && typeof result.ai_feedback === "string") {
+      result.ai_feedback = JSON.parse(result.ai_feedback);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching speech with feedback:", error);
+    throw error;
+  }
+}
+
+
+
+
+module.exports = {
+  submitSpeech,
+  saveFeedback,
+  validation,
+  evaluateSpeech,
+  getSpeechWithFeedback,
+};

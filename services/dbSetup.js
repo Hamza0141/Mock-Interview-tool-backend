@@ -109,16 +109,17 @@ const transfers = `CREATE TABLE IF NOT EXISTS transfers (
   FOREIGN KEY (sender_id) REFERENCES users(profile_id) ON DELETE SET NULL ON UPDATE CASCADE,
   FOREIGN KEY (receiver_email) REFERENCES users(user_email) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
-const public_speeches= `CREATE TABLE IF NOT EXISTS public_speeches (
+const public_speeches = `CREATE TABLE IF NOT EXISTS public_speeches (
   id INT AUTO_INCREMENT PRIMARY KEY,
   speech_id CHAR(12) NOT NULL UNIQUE,
   profile_id CHAR(36) NOT NULL,
   speech_title VARCHAR(255) NOT NULL,
+  status ENUM('pending','completed') DEFAULT 'pending',
   speech_goal TEXT NOT NULL,
   speech_text LONGTEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
-)`
+)`;
 
 const user_notes = `CREATE TABLE IF NOT EXISTS user_notes (
   note_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,13 +130,17 @@ const user_notes = `CREATE TABLE IF NOT EXISTS user_notes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 );`;
+
 const speech_feedback = `CREATE TABLE IF NOT EXISTS speech_feedback (
   id INT AUTO_INCREMENT PRIMARY KEY,
   speech_id CHAR(12) NOT NULL,
+  speech_title VARCHAR(255) NOT NULL,
   ai_feedback JSON NOT NULL,
+  status ENUM('pending','completed') ,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (speech_id) REFERENCES public_speeches(speech_id) ON DELETE CASCADE
 )`;
+
 const verifications = `CREATE TABLE IF NOT EXISTS verifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_email VARCHAR(255) NOT NULL,

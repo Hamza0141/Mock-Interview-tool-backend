@@ -1,7 +1,5 @@
 const createInterview = require("../services/initiateInterview.service");
-const prepareQuestions = require("../services/ai.service");
 // const questions = require("./questions.json");
-const { saveGeneratedQuestions } = require("../services/userQuestions.service");
 
 async function startInterview(req, res) {
   try {
@@ -26,20 +24,20 @@ async function startInterview(req, res) {
     const session_id = result.interview_id;
 
     //  Generate AI-based interview questions
-    const questions = await prepareQuestions.generateInterviewQuestions(
-         first_name,
-          job_title,
-          job_description,
-          difficulty
-        );
+    const questions = await createInterview.generateInterviewQuestions(
+      first_name,
+      job_title,
+      job_description,
+      difficulty
+    );
 
         //  Save questions into DB
-        await saveGeneratedQuestions(
-          profile_id,
-          session_id,
-          job_title,
-          questions.data
-        );
+       const saveQuestions = await createInterview.saveGeneratedQuestions(
+         profile_id,
+         session_id,
+         job_title,
+         questions.data
+       );
 
     res.status(200).json({
       success: true,

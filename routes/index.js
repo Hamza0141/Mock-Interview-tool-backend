@@ -8,10 +8,10 @@ const interview = require("./initiateInterview.routes");
 const evaluateInterview = require("./evaluateInterview.routes");
 const credit = require("./credit.route");
 const speech = require("./speech.route");
-const aiRoutes = require("./ai.route");
 const userNotes = require("./userNote.routes");
 const questionsAndFeedbacks = require("./questionsAndFeedbacks.route");
 const voiceTranscription = require("./voice.route");
+const report = require("./report.routes")
 
 
 
@@ -25,10 +25,11 @@ router.use(interview);
 router.use(evaluateInterview);
 router.use(credit);
 router.use(speech);
-router.use(aiRoutes);
 router.use(userNotes);
 router.use(questionsAndFeedbacks);
 router.use(voiceTranscription);
+router.use(report);
+
 
 
 
