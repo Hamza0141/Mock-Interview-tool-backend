@@ -14,7 +14,7 @@ async function insertUserResponses(session_id, asked_questions) {
 
   for (const response of asked_questions) {
     try {
-      const [insertResult] = await conn.query(sql, [
+      const [insertResult] = await pool.query(sql, [
         session_id,
         response.question_id,
         response.user_response || null,

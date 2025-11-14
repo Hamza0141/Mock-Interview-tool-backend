@@ -15,8 +15,8 @@ const report = require("./report.routes")
 
 
 
-const paymentRoutes = require("./payment.route");
-const webhookRoutes = require("../controllers/webhook.controller");
+// const paymentRoutes = require("./payment.route");
+// const webhookRoutes = require("../controllers/webhook.controller");
 
 // Mount all routes
 router.use(authRoutes);
@@ -33,9 +33,9 @@ router.use(report);
 
 
 
-// Mount payments under /api/payments
-router.use("/api/payments", paymentRoutes);
-// Mount Stripe webhook route (separate because it needs raw body)
-router.use("/api/payments", webhookRoutes);
+// // Mount payments under /api/payments
+// router.use("/api/payments", paymentRoutes);
+// // Mount Stripe webhook route (separate because it needs raw body)
+// router.use("/api/payments", webhookRoutes);
 
 module.exports = router;

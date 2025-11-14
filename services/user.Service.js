@@ -230,9 +230,9 @@ async function updateUser(updateData, profile_id) {
       fields.push("last_name = ?");
       values.push(updateData.last_name);
     }
-    if (updateData.work) {
-      fields.push("work = ?");
-      values.push(updateData.work);
+    if (updateData.profession) {
+      fields.push("profession = ?");
+      values.push(updateData.profession);
     }
     if (updateData.profile_url) {
       fields.push("profile_url = ?");
@@ -250,7 +250,7 @@ async function updateUser(updateData, profile_id) {
 
     // Fetch updated user
     const [rows] = await conn.query(
-      `SELECT profile_id, user_email, first_name, last_name, work, profile_url, credit_balance, free_trial, created_at, updated_at 
+      `SELECT profile_id, user_email, first_name, last_name, profession, profile_url, credit_balance, free_trial, created_at, updated_at 
        FROM users WHERE profile_id = ?`,
       [profile_id]
     );
@@ -263,55 +263,90 @@ async function updateUser(updateData, profile_id) {
 }
 
 
-async function buyUserCredit(profile_id, amount, bought_credit, email) {
+// async function buyUserCredit(profile_id, amount, bought_credit, email) {
 
-  try {
-    //generate purchases_record character 
-    const purchases_record = crypto.randomBytes(8).toString("hex");
+//   try {
+//     //generate purchases_record character 
+//     const purchases_record = crypto.randomBytes(8).toString("hex");
 
-    const userQuery = `
-      INSERT INTO purchases (purchases_record, user_email, first_name, last_name)
-      VALUES (?, ?, ?, ?)
-    `;
-    const [userResult] = await conn.query(userQuery, [
-      profile_id,
-      user.user_email,
-      firstName,
-      lastName,
-    ]);
+//     const userQuery = `
+//       INSERT INTO purchases (purchases_record, user_email, first_name, last_name)
+//       VALUES (?, ?, ?, ?)
+//     `;
+//     const [userResult] = await conn.query(userQuery, [
+//       profile_id,
+//       user.user_email,
+//       firstName,
+//       lastName,
+//     ]);
 
-    if (userResult.affectedRows !== 1) {
-      throw new Error("Failed to insert user into users table");
-    }
+//     if (userResult.affectedRows !== 1) {
+//       throw new Error("Failed to insert user into users table");
+//     }
 
-    // Insert password
-    const passwordQuery = `
-      INSERT INTO user_auth (profile_id,user_email, password_hash)
-      VALUES (?,?, ?)
-    `;
-    await conn.query(passwordQuery, [
-      profile_id,
-      user.user_email,
-      hashedPassword,
-    ]);
+//     // Insert password
+//     const passwordQuery = `
+//       INSERT INTO user_auth (profile_id,user_email, password_hash)
+//       VALUES (?,?, ?)
+//     `;
+//     await conn.query(passwordQuery, [
+//       profile_id,
+//       user.user_email,
+//       hashedPassword,
+//     ]);
 
-    const note = "Verify Your Email";
-    //   Send OTP email
-    await otpManager(user.user_email, note);
+//     const note = "Verify Your Email";
+//     //   Send OTP email
+//     await otpManager(user.user_email, note);
 
-    createdUser = {
-      profile_id,
-      message: "User created successfully. OTP sent to email for verification.",
-    };
-  } catch (err) {
-    console.error(" Error creating user:", err.message);
-    createdUser = null;
-  }
+//     createdUser = {
+//       profile_id,
+//       message: "User created successfully. OTP sent to email for verification.",
+//     };
+//   } catch (err) {
+//     console.error(" Error creating user:", err.message);
+//     createdUser = null;
+//   }
 
-  return createdUser;
+//   return createdUser;
+// }
+
+// async function getUserByProfileId(profileId) {
+//   const [rows] = await conn.query(
+//     "SELECT * FROM users WHERE profile_id = ? LIMIT 1",
+//     [profileId]
+//   );
+//   return rows[0] || null;
+// }
+
+async function getCreditSummary(profileId) {
+  const user = await getUserById(profileId);
+  if (!user) throw new Error("User not found");
+
+  // Get available credit packs (you could add WHERE active = 1 later)
+  const [packs] = await conn.query(
+    "SELECT id, name, credits, price_cents FROM credit_packs ORDER BY price_cents ASC"
+  );
+
+  // Last few transactions
+  const [transactions] = await conn.query(
+    `SELECT id, stripe_payment_intent_id, amount, bought_credit, currency, status, created_at
+     FROM credit_transactions
+     WHERE profile_id = ?
+     ORDER BY created_at DESC
+     LIMIT 10`,
+    [profileId]
+  );
+
+  return {
+    profile_id: user.profile_id,
+    user_email: user.user_email,
+    credit_balance: user.credit_balance,
+    free_trial: user.free_trial,
+    credit_packs: packs,
+    recent_transactions: transactions,
+  };
 }
-
-
 
 
 module.exports = {
@@ -321,6 +356,7 @@ module.exports = {
   createUser,
   verifyEmail,
   updateUserPassword,
-  buyUserCredit,
+  // buyUserCredit,
+  getCreditSummary,
   updateUser,
 };

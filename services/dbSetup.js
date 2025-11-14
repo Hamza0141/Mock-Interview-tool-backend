@@ -7,7 +7,8 @@ const users = `CREATE TABLE IF NOT EXISTS users (
     user_email VARCHAR(255) NOT NULL UNIQUE,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
-    work VARCHAR(100),
+    stripe_customer_id VARCHAR(255) NULL,
+    profession VARCHAR(100),
     profile_url VARCHAR(300),
     credit_balance INT DEFAULT 0,
     free_trial INT DEFAULT 1,
@@ -27,10 +28,9 @@ const user_auth = `CREATE TABLE IF NOT EXISTS user_auth (
     FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
-const purchases = `CREATE TABLE IF NOT EXISTS purchases (
+const credit_transactions = `CREATE TABLE IF NOT EXISTS credit_transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    purchases_record VARCHAR(255),
-    transaction_id VARCHAR(255),
+    stripe_payment_intent_id  VARCHAR(255),
     profile_id CHAR(36) NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     bought_credit INT,
@@ -38,6 +38,12 @@ const purchases = `CREATE TABLE IF NOT EXISTS purchases (
     status ENUM('pending','completed','failed') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
+)`;
+const credit_packs = `CREATE TABLE IF NOT EXISTS credit_packs (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(50),
+  credits INT NOT NULL,
+  price_cents INT NOT NULL
 )`;
 
 const interview_sessions = `CREATE TABLE IF NOT EXISTS interview_sessions (
@@ -157,7 +163,8 @@ async function createTables() {
   const connection = await pool.getConnection();
   try {
     await connection.query(users);
-    await connection.query(purchases);
+    await connection.query(credit_transactions);
+    await connection.query(credit_packs);
     await connection.query(interview_sessions);
     await connection.query(asked_questions);
     await connection.query(user_responses);

@@ -1,7 +1,7 @@
 
 const userService = require("../services/user.Service");
 const bcrypt = require("bcrypt");
-
+const paymentService = require("../services/payment.service")
 async function createUser(req, res) {
   console.log(req.body);
   try {
@@ -144,7 +144,7 @@ console.log(user.password_hash);
 async function updateUserInfo(req, res) {
   try {
          const profile_id = req.user.profile_id;
-    const { first_name, last_name, work, profile_url } = req.body;
+    const { first_name, last_name, profession, profile_url } = req.body;
 
     if (!profile_id) {
       return res.status(400).json({
@@ -154,7 +154,7 @@ async function updateUserInfo(req, res) {
     }
 
     // Pass only fields that are allowed to update
-    const updateData = { first_name, last_name, work, profile_url };
+    const updateData = { first_name, last_name, profession, profile_url };
 
     const updatedUser = await userService.updateUser(updateData, profile_id);
 
@@ -179,59 +179,111 @@ async function updateUserInfo(req, res) {
   }
 }
 
-async function buyCredit(req, res) {
-  try {
-     const profile_id = req.user.profile_id;
-    const { amount, bought_credit, email } = req.body;
+// async function buyCredit(req, res) {
+//   try {
+//      const profile_id = req.user.profile_id;
+//     const { amount, bought_credit, email } = req.body;
 
-    if (!profile_id || !amount || !bought_credit || !email) {
+//     if (!profile_id || !amount || !bought_credit || !email) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "All fields are required" });
+//     }
+
+
+//     const user = await userService.getUserByEmail(userEmail);
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
+//     console.log(user.password_hash);
+//     // 4️⃣ Compare current password
+//     const isMatch = await bcrypt.compare(current_password, user.password_hash);
+//     if (!isMatch) {
+//       return res
+//         .status(401)
+//         .json({ success: false, message: "Current password is incorrect" });
+//     }
+
+//     // 5️⃣ Hash and update new password
+//     const hashedPassword = await bcrypt.hash(new_password, 10);
+//     const result = await userService.updateUserPassword(
+//       userEmail,
+//       hashedPassword
+//     );
+
+//     if (!result.success) {
+//       return res
+//         .status(500)
+//         .json({ success: false, message: "Failed to update password" });
+//     }
+
+//     res
+//       .status(200)
+//       .json({ success: true, message: "Password updated successfully" });
+//   } catch (error) {
+//     console.error("Error changing password:", error);
+//     res.status(500).json({ success: false, message: "Internal server error" });
+//   }
+// }
+
+async function getCreditSummary (req, res)  {
+  try {
+    const profileId = req.user?.profile_id || req.query.profile_id;
+
+    if (!profileId) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "profile_id is required" });
     }
 
+    const summary = await userService.getCreditSummary(profileId);
 
-    const user = await userService.getUserByEmail(userEmail);
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    console.log(user.password_hash);
-    // 4️⃣ Compare current password
-    const isMatch = await bcrypt.compare(current_password, user.password_hash);
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Current password is incorrect" });
-    }
-
-    // 5️⃣ Hash and update new password
-    const hashedPassword = await bcrypt.hash(new_password, 10);
-    const result = await userService.updateUserPassword(
-      userEmail,
-      hashedPassword
-    );
-
-    if (!result.success) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to update password" });
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: "Password updated successfully" });
-  } catch (error) {
-    console.error("Error changing password:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res.json({ success: true, data: summary });
+  } catch (err) {
+    console.error("getCreditSummary error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};
+
+async function createCreditPaymentIntent  (req, res) {
+  try {
+
+    const profileId = req.user?.profile_id || req.body.profile_id;
+    const { pack_id } = req.body;
+    if (!profileId || !pack_id) {
+      return res.status(400).json({
+        success: false,
+        message: "profile_id and pack_id are required",
+      });
+    }
+
+    const result = await paymentService.createCreditPurchaseIntent({
+      profileId,
+      packId: pack_id,
+    });
+    
+    console.log(result);
+    return res.json({
+      success: true,
+      clientSecret: result.clientSecret,
+      paymentIntentId: result.paymentIntentId,
+    });
+  } catch (err) {
+    console.error("createCreditPaymentIntent error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 module.exports = {
   createUser,
   getIUserByUserId,
   changePassword,
-  buyCredit,
+  // buyCredit,
   updateUserInfo,
   getUserWithEmail,
+  createCreditPaymentIntent,
+  getCreditSummary,
 };

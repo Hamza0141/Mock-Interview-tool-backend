@@ -14,6 +14,13 @@ router.post("/api/user/getUserByEmail", verifyToken, userAccount.getUserWithEmai
 router.post("/api/user/passwordchange", verifyToken ,userAccount.changePassword);
 router.put("/api/user/update", verifyToken, userAccount.updateUserInfo);
 
+router.get("/api/user/credits", verifyToken, userAccount.getCreditSummary);
+router.post(
+  "/api/user/credits/payment-intent",
+  verifyToken,
+  userAccount.createCreditPaymentIntent
+);
+
 
 
 module.exports = router;
