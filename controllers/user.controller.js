@@ -1,7 +1,7 @@
 
 const userService = require("../services/user.Service");
-const bcrypt = require("bcrypt");
 const paymentService = require("../services/payment.service")
+const bcrypt = require("bcrypt");
 async function createUser(req, res) {
   console.log(req.body);
   try {
@@ -72,6 +72,7 @@ console.log(req.body);
     } 
     
     const userinfo = {
+      profile_id: userData.profile_id,
       first_name: userData.first_name,
       last_name: userData.last_name,
       user_email: userData.user_email,

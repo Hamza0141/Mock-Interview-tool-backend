@@ -2,10 +2,10 @@ const creditService = require("../services/credit.service");
 
 async function transferCreditBalance(req, res) {
   try {
-    console.log(req.user.user_email);
 
       const {user_email,profile_id} = req.user
     const { receiver_email, amount } = req.body;
+    const senderFirstName = req.user.first_name; 
     
     console.log(profile_id, receiver_email, amount);
     // Basic validation
@@ -25,6 +25,7 @@ async function transferCreditBalance(req, res) {
     }
 
     const result = await creditService.transferCredit(
+      senderFirstName,
       profile_id,
       receiver_email,
       parseFloat(amount)

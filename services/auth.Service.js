@@ -2,12 +2,13 @@ const conn = require("../config/db.config");
 const getUserByEmail = require("../services/user.Service");
 const bcrypt = require("bcrypt");
 const {otpManager} = require("../utils/otpManager");
+// import notification
+const notificationService = require("./notification.service");
 
 async function logIn(userData) {
   try {
   
     const user = await getUserByEmail.getUserByEmail(userData.user_email);
-    console.log("Fetched user:", user);
     // Handle user not found
     if (!user) {
       return {
@@ -114,7 +115,16 @@ async function resetPasswordWithOTP(email, otpCode, newPassword) {
       [rows[0].id]
     );
 
-
+  const user = await getUserByEmail.getUserByEmail(email);
+  
+  await notificationService.createNotification({
+    profile_id: user.profile_id,
+    type: "Password",
+    title: "Password Reset ",
+    body: `You have successfully Reset your password .`,
+    entity_type: "Password changed",
+    entity_id: email,
+  });
     return {
       status: "success",
       message: "Password has been reset successfully",

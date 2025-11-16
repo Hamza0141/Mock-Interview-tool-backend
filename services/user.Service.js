@@ -1,10 +1,11 @@
 // Import the query function from the db.config.js file
 const conn = require("../config/db.config");
-// Import the bcrypt module
 // Import the jsonwebtoken module
 const jwt = require("jsonwebtoken");
 // Import the secret key from the environment variables
 const jwtSecret = process.env.JWT_SECRET;
+// import notification
+const notificationService = require("./notification.service");
 
 const {otpManager} = require("../utils/otpManager")
 const bcrypt = require("bcrypt");
@@ -101,6 +102,7 @@ async function checkIfUserExists(email) {
   const [rows] = await conn.query(query, [email]);
   return rows.length > 0;
 }
+
 async function getUserById(user_id) {
   const query = `
     SELECT 
@@ -188,6 +190,16 @@ async function createUser(user) {
 const note = "Verify Your Email";
     //   Send OTP email
     await otpManager(user.user_email, note);
+    
+    //create notification
+    await notificationService.createNotification({
+      profile_id: profile_id,
+      type: "account",
+      title: "Welcome to SelfMock 🎉",
+      body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
+      entity_type: "user",
+      entity_id: profile_id,
+    });
 
     createdUser = {
       profile_id,

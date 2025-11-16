@@ -1,6 +1,8 @@
 const conn = require("../config/db.config");
 const crypto = require("crypto");
 const openai = require("../config/openai");
+// import notification
+const notificationService = require("./notification.service");
 
 async function validation(profile_id) {
   try {
@@ -113,7 +115,7 @@ OUTPUT JSON SCHEMA:
 
 
 
-async function saveFeedback(speech_id, speech_title, ai_feedback) {
+async function saveFeedback(profile_id, speech_id, speech_title, ai_feedback) {
   const connection = await conn.getConnection();
   try {
     await connection.query(
@@ -125,6 +127,16 @@ async function saveFeedback(speech_id, speech_title, ai_feedback) {
       "UPDATE public_speeches SET status = 'completed' WHERE speech_id = ?",
       [speech_id]
     );
+        //create notification
+        await notificationService.createNotification({
+          profile_id: profile_id,
+          type: "speech",
+          title: "Speech evaluation ready",
+          body: `Your speech "${speech_title}" has AI feedback available now.`,
+          entity_type: "user",
+          entity_id: profile_id,
+        });
+    
   } catch (error) {
     console.error("Error saving feedback:", error);
   } finally {
@@ -164,6 +176,15 @@ async function getSpeechWithFeedback(speech_id) {
     if (result.ai_feedback && typeof result.ai_feedback === "string") {
       result.ai_feedback = JSON.parse(result.ai_feedback);
     }
+    //create notification
+    await notificationService.createNotification({
+      profile_id: profile_id,
+      type: "account",
+      title: "Welcome to SelfMock 🎉",
+      body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
+      entity_type: "user",
+      entity_id: speech_id,
+    });
 
     return result;
   } catch (error) {

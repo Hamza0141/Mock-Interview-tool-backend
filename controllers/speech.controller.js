@@ -32,7 +32,11 @@ async function handleSpeechSubmission(req, res) {
     });
 
     // 3️⃣ Save AI feedback
-    await SpeechService.saveFeedback(speech_id, speech_title, ai_feedback);
+    await SpeechService.saveFeedback(
+      profile_id,speech_id,
+      speech_title,
+      ai_feedback
+    );
 
     res.status(201).json({
       success: true,

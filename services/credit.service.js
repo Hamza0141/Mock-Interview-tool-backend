@@ -1,8 +1,14 @@
 const conn = require("../config/db.config");
 const userService = require("./user.Service");
 const crypto = require("crypto");
+// import notification
+const notificationService = require("./notification.service");
 
-async function transferCredit(sender_id, receiver_email, amount) {
+async function transferCredit(
+  senderFirstName, sender_id,
+  receiver_email,
+  amount
+) {
   const connection = await conn.getConnection(); // get pooled connection
   await connection.beginTransaction();
 
@@ -13,7 +19,8 @@ async function transferCredit(sender_id, receiver_email, amount) {
       await connection.rollback();
       return { success: false, message: "Receiver does not exist" };
     }
-
+    const receiverId = receiver.profile_id;
+    console.log("receverPP" + receiverId);
     // Fetch sender balance
     const [senderRows] = await connection.query(
       "SELECT credit_balance FROM users WHERE profile_id = ? FOR UPDATE",
@@ -51,12 +58,33 @@ async function transferCredit(sender_id, receiver_email, amount) {
     );
 
     const transfer_id = crypto.randomBytes(6).toString("hex");
-    
-await connection.query(
-  "INSERT INTO transfers (transfer_id, sender_id, receiver_email, amount) VALUES (?, ?, ?, ?)",
-  [transfer_id, sender_id || null, receiver_email, amount]
-);
+
+    await connection.query(
+      "INSERT INTO transfers (transfer_id, sender_id, receiver_email, amount) VALUES (?, ?, ?, ?)",
+      [transfer_id, sender_id || null, receiver_email, amount]
+    );
     await connection.commit();
+    //create notification for sender
+
+    await notificationService.createNotification({
+      profile_id: sender_id,
+      type: "Transfer",
+      title: "Credits sent ",
+      body: `You successfully transferred ${amount} credits to ${receiver_email}.`,
+      entity_type: "credit_transfer",
+      entity_id: transfer_id,
+    });
+
+    //create notification for receiver
+
+    await notificationService.createNotification({
+      profile_id: receiverId,
+      type: "Transfer",
+      title: "Credits received",
+      body: `You successfully receive ${amount} credits from ${senderFirstName}.`,
+      entity_type: "credit_transfer",
+      entity_id: transfer_id,
+    });
 
     return {
       success: true,

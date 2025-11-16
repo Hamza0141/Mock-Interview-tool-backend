@@ -12,7 +12,9 @@ const userNotes = require("./userNote.routes");
 const questionsAndFeedbacks = require("./questionsAndFeedbacks.route");
 const voiceTranscription = require("./voice.route");
 const report = require("./report.routes")
-
+const ticket = require("./ticket.routes");
+const adminRoutes = require("./admin.routes");
+const notifications = require("./admin.routes");
 
 
 // const paymentRoutes = require("./payment.route");
@@ -29,6 +31,9 @@ router.use(userNotes);
 router.use(questionsAndFeedbacks);
 router.use(voiceTranscription);
 router.use(report);
+router.use(ticket);
+router.use(adminRoutes);
+router.use(notifications);
 
 
 

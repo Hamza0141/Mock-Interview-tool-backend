@@ -1,6 +1,7 @@
 // api/services/questionsAndFeedbacks.service.js
 const conn = require("../config/db.config");
 
+
  async function getQuestionsBySessionId(interview_id) {
    try {
      const [rows] = await conn.query(
@@ -133,11 +134,5 @@ GROUP BY s.interview_id`,
     };
   }
 }
-
-
-
-
-
-
 
 module.exports = { getQuestionsBySessionId, getFeedbackBySessionId };

@@ -7,11 +7,6 @@ const mg = mailgun.client({
   key: process.env.MAILGUN_API_KEY,
 });
 
-/**
- * Send OTP Verification Email
- * @param {string} email - Recipient email address
- * @param {string} otp - 6-digit OTP code
- */
 async function sendOTPEmail(email, otp, note ) {
   try {
     const data = await mg.messages.create(process.env.MAILGUN_DOMAIN, {

@@ -115,6 +115,7 @@ const transfers = `CREATE TABLE IF NOT EXISTS transfers (
   FOREIGN KEY (sender_id) REFERENCES users(profile_id) ON DELETE SET NULL ON UPDATE CASCADE,
   FOREIGN KEY (receiver_email) REFERENCES users(user_email) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
+
 const public_speeches = `CREATE TABLE IF NOT EXISTS public_speeches (
   id INT AUTO_INCREMENT PRIMARY KEY,
   speech_id CHAR(12) NOT NULL UNIQUE,
@@ -146,6 +147,72 @@ const speech_feedback = `CREATE TABLE IF NOT EXISTS speech_feedback (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (speech_id) REFERENCES public_speeches(speech_id) ON DELETE CASCADE
 )`;
+const support_tickets = `CREATE TABLE IF NOT EXISTS support_tickets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_id CHAR(36) NOT NULL UNIQUE,
+  profile_id CHAR(36) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  status ENUM('open', 'in_progress', 'resolved', 'closed') DEFAULT 'open',
+  priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
+)`;
+
+
+const ticket_messages = `CREATE TABLE IF NOT EXISTS support_ticket_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_id  CHAR(36) NOT NULL,
+  sender_type ENUM('user', 'admin') NOT NULL,
+  sender_user_profile_id CHAR(36) NULL,
+  sender_admin_profile_id CHAR(36) NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (ticket_id) REFERENCES support_tickets(ticket_id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_user_profile_id) REFERENCES users(profile_id) ON DELETE SET NULL,
+  FOREIGN KEY (sender_admin_profile_id) REFERENCES admin(profile_id) ON DELETE SET NULL
+);`;
+
+const admin = `CREATE TABLE IF NOT EXISTS admin (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  profile_id CHAR(36) NOT NULL UNIQUE,
+  admin_email VARCHAR(255) NOT NULL UNIQUE,
+  access_type  ENUM('admin', 'support') DEFAULT 'admin',
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  password_hash VARCHAR(255) NOT NULL,
+  profession VARCHAR(100),
+  profile_url VARCHAR(300),
+  stripe_customer_id VARCHAR(255) NULL,
+  is_active TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);`;
+
+const notifications = `CREATE TABLE IF NOT EXISTS notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  notification_id CHAR(16) NOT NULL UNIQUE,
+  profile_id CHAR(36) NOT NULL, -- recipient (user)
+  type ENUM(
+    'account',
+    'credit',
+    'interview',
+    'speech',
+    'transfer',
+    'ticket',
+    'system'
+  ) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+
+  entity_type VARCHAR(50) NULL,   -- e.g. 'interview_session', 'support_ticket'
+  entity_id   VARCHAR(64) NULL,   -- e.g. session_id, ticket_id, tx_id
+
+  is_read TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
+)`;
 
 const verifications = `CREATE TABLE IF NOT EXISTS verifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -174,6 +241,10 @@ async function createTables() {
     await connection.query(user_notes);
     await connection.query(speech_feedback);
     await connection.query(verifications);
+    await connection.query(support_tickets);
+    await connection.query(ticket_messages);
+    await connection.query(admin);
+    await connection.query(notifications);
     await connection.query(user_auth);
     console.log(" All tables checked/created successfully.");
   } catch (err) {

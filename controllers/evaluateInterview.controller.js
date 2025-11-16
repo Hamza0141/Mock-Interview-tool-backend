@@ -4,6 +4,7 @@ const evaluator = require("../services/evaluateInterview.service");
 
 async function evaluateAndAddFeedback(req, res) {
   try {
+    const profile_id = req.user.profile_id
     const { first_name, session_id, asked_questions } = req.body;
       const inputData = req.body;
     console.log("evaluation");
@@ -42,6 +43,7 @@ async function evaluateAndAddFeedback(req, res) {
 
     // 3️⃣ Insert the entire AI feedback JSON in DB
 const insertResult = await evaluator.insertAiFeedback(
+  profile_id,
   session_id,
   aiFeedback.question_id,
   aiFeedback.user_response_id,

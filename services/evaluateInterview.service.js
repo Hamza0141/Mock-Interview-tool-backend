@@ -1,6 +1,8 @@
 
 const openai = require("../config/openai");
 const pool = require("../config/db.config");
+// import notification
+const notificationService = require("./notification.service");
 
 
 async function insertUserResponses(session_id, asked_questions) {
@@ -121,6 +123,7 @@ RULES:
 }
 
 async function insertAiFeedback(
+  profile_id,
   session_id,
   question_id,
   user_response_id,
@@ -158,6 +161,17 @@ async function insertAiFeedback(
             feedback_type,
           ]
         );
+
+        //create notification
+        await notificationService.createNotification({
+          profile_id: profile_id,
+          type: "Interview",
+          title: "Interview Result Ready",
+          body: `Your Interview "${session_id}", has AI feedback available now.`,
+          entity_type: "user",
+          entity_id: session_id,
+        });
+        
       }
     }
 
