@@ -85,12 +85,25 @@ async function sendResetOTP(req, res) {
 
 // 2️⃣ Reset password with OTP
 async function resetPassword(req, res) {
-  const { user_email, otp_code, new_password } = req.body;
-  const response = await authService.resetPasswordWithOTP(user_email, otp_code, new_password);
-  
+  const { user_email, otp, new_password } = req.body;
+  console.log(req.body);
+
+  if (!user_email || !otp || !new_password) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Email, code, and new password are required",
+    });
+  }
+
+  const response = await authService.resetPasswordWithOTP(
+    user_email,
+    otp,
+    new_password
+  );
 
   return res.status(response.status === "success" ? 200 : 400).json(response);
 }
+
 
 
 

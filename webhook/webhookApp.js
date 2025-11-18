@@ -1,6 +1,8 @@
 const express = require("express");
 const stripe = require("../config/stripe");
 const conn = require("../config/db.config");
+// import notification
+const notificationService = require("../services/notification.service");
 
 const webhookApp = express();
 
@@ -104,6 +106,14 @@ webhookApp.post(
            WHERE id = ?`,
           [tx.id]
         );
+      await notificationService.createNotification({
+        profile_id: tx.profile_id,
+        type: "credit", // lowercase, category
+        title: "Credit Purchase Completed",
+        body: `You successfully purchased ${credits} credits. Transaction ID: ${paymentIntentId}.`,
+        entity_type: "credit_transaction", // exact key used in filters
+        entity_id: paymentIntentId,
+      });
 
         console.log("✅ Credits updated successfully for", paymentIntentId);
       }

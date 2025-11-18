@@ -14,7 +14,8 @@ const voiceTranscription = require("./voice.route");
 const report = require("./report.routes")
 const ticket = require("./ticket.routes");
 const adminRoutes = require("./admin.routes");
-const notifications = require("./admin.routes");
+const notifications = require("./notification.routes");
+const feedback = require("./feedback.routes");
 
 
 // const paymentRoutes = require("./payment.route");
@@ -34,6 +35,8 @@ router.use(report);
 router.use(ticket);
 router.use(adminRoutes);
 router.use(notifications);
+router.use(feedback);
+
 
 
 

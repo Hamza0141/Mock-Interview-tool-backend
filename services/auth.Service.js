@@ -2,6 +2,7 @@ const conn = require("../config/db.config");
 const getUserByEmail = require("../services/user.Service");
 const bcrypt = require("bcrypt");
 const {otpManager} = require("../utils/otpManager");
+const { verifyOtpRecord } = require("../utils/verificationService")
 // import notification
 const notificationService = require("./notification.service");
 
@@ -72,7 +73,7 @@ async function requestPasswordReset(email) {
     if (rows.length === 0) {
       return { status: "fail", message: "Email not found" };
     }
-const note = "OneTime Password"
+const note = "Password Reset Code "
     // Send OTP
      await otpManager(email, note);
 
@@ -86,51 +87,59 @@ const note = "OneTime Password"
   }
 }
 
-async function resetPasswordWithOTP(email, otpCode, newPassword) {
+async function resetPasswordWithOTP(user_email, otp_code, newPassword) {
   try {
-    // Check if OTP exists and is valid
-    const [rows] = await conn.query(
-      "SELECT * FROM verifications WHERE user_email = ? AND otp_code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
-      [email, otpCode]
-    );
+    console.log("🔐 resetPasswordWithOTP for:", user_email);
 
-    if (rows.length === 0 || rows[0].is_used) {
-      return { status: "fail", message: "Invalid or expired OTP" };
+    // 1️⃣ Verify OTP
+    const { ok, message } = await verifyOtpRecord({
+      user_email,
+      otp: otp_code,
+    });
+
+    if (!ok) {
+      console.warn("OTP verification failed:", message);
+      return {
+        status: "fail",
+        message: message || "Invalid or expired code",
+      };
     }
 
-    // Hash new password
+    // 2️⃣ Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password in user_auth table
-    await conn.query(
-      "UPDATE user_auth SET password_hash = ? WHERE user_email = ?",
-      [hashedPassword, email]
-    );
-      await conn.query(
-          "UPDATE user_auth SET is_verified = TRUE WHERE user_email = ?",
-          [email]
-        );
-    await conn.query(
-      "UPDATE verifications SET verified = TRUE, is_used = TRUE WHERE id = ?",
-      [rows[0].id]
+    // 3️⃣ Update password in user_auth table
+    const [updateResult] = await conn.query(
+      "UPDATE user_auth SET password_hash = ?, is_verified = TRUE WHERE user_email = ?",
+      [hashedPassword, user_email]
     );
 
-  const user = await getUserByEmail.getUserByEmail(email);
-  
-  await notificationService.createNotification({
-    profile_id: user.profile_id,
-    type: "Password",
-    title: "Password Reset ",
-    body: `You have successfully Reset your password .`,
-    entity_type: "Password changed",
-    entity_id: email,
-  });
+    if (updateResult.affectedRows === 0) {
+      return {
+        status: "fail",
+        message: "No user found for this email",
+      };
+    }
+
+    // 4️⃣ Fetch user to send notification
+    const user = await getUserByEmail.getUserByEmail(user_email);
+    if (user?.profile_id) {
+      await notificationService.createNotification({
+        profile_id: user.profile_id,
+        type: "system", 
+        title: "Password Reset",
+        body: `You have successfully reset your password.`,
+        entity_type: "Password changed",
+        entity_id: user_email,
+      });
+    }
+
     return {
       status: "success",
       message: "Password has been reset successfully",
     };
   } catch (error) {
-    console.error("Error in resetPasswordWithOTP:", error);
+    console.error("❌ Error in resetPasswordWithOTP:", error);
     return { status: "fail", message: "Internal server error" };
   }
 }

@@ -174,22 +174,21 @@ async function updateTicketStatus({ ticket_id, newStatus }) {
     `,
     [newStatus, ticket_id]
   );
-console.log(result);
+  console.log(result);
   if (result.affectedRows === 0) {
     const err = new Error("Ticket not found");
     err.status = 404;
     throw err;
   }
 
-      // await notificationService.createNotification({
-      //   profile_id: profile_id,
-      //   type: "account",
-      //   title: "Welcome to SelfMock 🎉",
-      //   body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
-      //   entity_type: "user",
-      //   entity_id: ticket_id,
-      // });
-  
+  // await notificationService.createNotification({
+  //   profile_id: ownerProfile_id,
+  //   type: "account",
+  //   title: "Welcome to SelfMock 🎉",
+  //   body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
+  //   entity_type: "user",
+  //   entity_id: ticket_id,
+  // });
 
   return { success: true, status: newStatus };
 }

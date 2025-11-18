@@ -2,8 +2,11 @@
 const userService = require("../services/user.Service");
 const paymentService = require("../services/payment.service")
 const bcrypt = require("bcrypt");
+const {otpManager} = require("../utils/otpManager");
+const { verifyOtpRecord } = require("../utils/verificationService");
+
 async function createUser(req, res) {
-  console.log(req.body);
+
   try {
     const { user_email } = req.body;
 
@@ -179,6 +182,64 @@ async function updateUserInfo(req, res) {
     });
   }
 }
+async function sendUserOtp(req, res) {
+  try {
+    const { user_email } = req.body;
+    const note = "Verify Your Email";
+    if (!user_email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+    const result = await otpManager(user_email, note);
+    return res.status(200).json({
+      success: true,
+      message: "Verification code sent to your email.",
+    });
+  } catch (error) {
+    console.error("❌ Error sending OTP:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while sending OTP.",
+    });
+  }
+}
+
+async function verifyOtp(req, res) {
+  try {
+    const { user_email, otp } = req.body;
+
+    if (!user_email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and code are required.",
+      });
+    }
+
+    const result = await verifyOtpRecord({ user_email, otp });
+
+    if (!result.ok) {
+      return res.status(400).json({
+        success: false,
+        message: result.message || "Invalid or expired code.",
+      });
+    }
+
+    // At this point verification row is updated (verified + is_used = true)
+    return res.status(200).json({
+      success: true,
+      message: "Code verified successfully.",
+      data: { verification: result.record },
+    });
+  } catch (error) {
+    console.error("❌ Error verifying OTP:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while verifying code.",
+    });
+  }
+}
 
 // async function buyCredit(req, res) {
 //   try {
@@ -287,4 +348,6 @@ module.exports = {
   getUserWithEmail,
   createCreditPaymentIntent,
   getCreditSummary,
+  sendUserOtp,
+  verifyOtp,
 };

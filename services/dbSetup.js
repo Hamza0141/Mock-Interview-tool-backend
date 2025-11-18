@@ -204,13 +204,24 @@ const notifications = `CREATE TABLE IF NOT EXISTS notifications (
   ) NOT NULL,
   title VARCHAR(255) NOT NULL,
   body TEXT NOT NULL,
-
-  entity_type VARCHAR(50) NULL,   -- e.g. 'interview_session', 'support_ticket'
-  entity_id   VARCHAR(64) NULL,   -- e.g. session_id, ticket_id, tx_id
-
+  entity_type VARCHAR(50) NULL,   
+  entity_id   VARCHAR(64) NULL,   
   is_read TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+  FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
+)`;
+
+const service_feedback = `CREATE TABLE IF NOT EXISTS service_feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  feedback_id CHAR(12) NOT NULL UNIQUE,
+  profile_id CHAR(36) NOT NULL,
+  q1_rating TINYINT NOT NULL, 
+  q2_rating TINYINT NOT NULL,
+  q3_rating TINYINT NOT NULL,
+  q4_rating TINYINT NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
@@ -219,7 +230,6 @@ const verifications = `CREATE TABLE IF NOT EXISTS verifications (
     user_email VARCHAR(255) NOT NULL,
     otp_code VARCHAR(6) NOT NULL,
     expires_at DATETIME NOT NULL,
-    verified TINYINT DEFAULT 0,
     is_used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`;
@@ -245,6 +255,7 @@ async function createTables() {
     await connection.query(ticket_messages);
     await connection.query(admin);
     await connection.query(notifications);
+    await connection.query(service_feedback);
     await connection.query(user_auth);
     console.log(" All tables checked/created successfully.");
   } catch (err) {

@@ -10,58 +10,50 @@ const notificationService = require("./notification.service");
 const {otpManager} = require("../utils/otpManager")
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-
+const {verifyOtpRecord}= require("../utils/verificationService")
 
 async function verifyEmail(req, res) {
-  console.log(req.body)
   try {
     const { user_email, otp } = req.body;
 
-    // 1️⃣ Find OTP
-    const [rows] = await conn.query(
-      "SELECT * FROM verifications WHERE user_email = ? AND otp_code = ?",
-      [user_email, otp]
-    );
-
-    if (!rows.length)
-      return res.status(400).json({ success: false, message: "Invalid code" });
-
-    const record = rows[0];
-
-    if (record.verified)
+    if (!user_email || !otp) {
       return res
         .status(400)
-        .json({ success: false, message: "Already verified" });
+        .json({ success: false, message: "Email and code are required." });
+    }
 
-    if (new Date(record.expires_at) < new Date() || record.is_used)
-      return res.status(400).json({ success: false, message: "Code expired" });
+    // Reuse the generic logic (this will validate & update verifications table)
+    await verifyOtpRecord({ user_email, otp });
 
-    // 2️⃣ Update verification table
-    await conn.query(
-      "UPDATE verifications SET verified = TRUE, is_used = TRUE WHERE id = ?",
-      [record.id]
-    );
-
-    // 3️⃣ Update user table
+    //  Update user table
     await conn.query(
       "UPDATE user_auth SET is_verified = TRUE WHERE user_email = ?",
       [user_email]
     );
 
-    // 4️⃣ Fetch user info to include in token
+    //  Fetch user info to include in token
     const [userData] = await conn.query(
-      "SELECT u.profile_id, u.first_name, u.last_name, u.user_email, a.is_verified, a.is_active FROM users u JOIN user_auth a ON u.profile_id = a.profile_id WHERE u.user_email = ?",
+      `SELECT u.profile_id,
+              u.first_name,
+              u.last_name,
+              u.user_email,
+              a.is_verified,
+              a.is_active
+       FROM users u
+       JOIN user_auth a ON u.profile_id = a.profile_id
+       WHERE u.user_email = ?`,
       [user_email]
     );
 
-    if (!userData.length)
+    if (!userData.length) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
     const user = userData[0];
 
-    // 5️⃣ Sign JWT now that user is verified
+    //  Sign JWT now that user is verified
     const payload = {
       profile_id: user.profile_id,
       user_email: user.user_email,
@@ -74,13 +66,12 @@ async function verifyEmail(req, res) {
 
     const token = jwt.sign(payload, jwtSecret, { expiresIn: "24h" });
 
-  
     //  Send token securely as cookie
     res.cookie("auth_token", token, {
-      httpOnly: true, // prevents JS access
-      secure: false, // set to true in production (requires HTTPS)
-      sameSite: "Lax", // or "Strict" for even tighter CSRF protection
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      httpOnly: true,
+      secure: false, // true in prod with HTTPS
+      sameSite: "Lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
@@ -90,9 +81,10 @@ async function verifyEmail(req, res) {
     });
   } catch (error) {
     console.error("Error verifying email:", error.message);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during verification." });
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Server error during verification.",
+    });
   }
 }
 
@@ -194,7 +186,7 @@ const note = "Verify Your Email";
     //create notification
     await notificationService.createNotification({
       profile_id: profile_id,
-      type: "account",
+      type: "system",
       title: "Welcome to SelfMock 🎉",
       body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
       entity_type: "user",
@@ -275,61 +267,7 @@ async function updateUser(updateData, profile_id) {
 }
 
 
-// async function buyUserCredit(profile_id, amount, bought_credit, email) {
 
-//   try {
-//     //generate purchases_record character 
-//     const purchases_record = crypto.randomBytes(8).toString("hex");
-
-//     const userQuery = `
-//       INSERT INTO purchases (purchases_record, user_email, first_name, last_name)
-//       VALUES (?, ?, ?, ?)
-//     `;
-//     const [userResult] = await conn.query(userQuery, [
-//       profile_id,
-//       user.user_email,
-//       firstName,
-//       lastName,
-//     ]);
-
-//     if (userResult.affectedRows !== 1) {
-//       throw new Error("Failed to insert user into users table");
-//     }
-
-//     // Insert password
-//     const passwordQuery = `
-//       INSERT INTO user_auth (profile_id,user_email, password_hash)
-//       VALUES (?,?, ?)
-//     `;
-//     await conn.query(passwordQuery, [
-//       profile_id,
-//       user.user_email,
-//       hashedPassword,
-//     ]);
-
-//     const note = "Verify Your Email";
-//     //   Send OTP email
-//     await otpManager(user.user_email, note);
-
-//     createdUser = {
-//       profile_id,
-//       message: "User created successfully. OTP sent to email for verification.",
-//     };
-//   } catch (err) {
-//     console.error(" Error creating user:", err.message);
-//     createdUser = null;
-//   }
-
-//   return createdUser;
-// }
-
-// async function getUserByProfileId(profileId) {
-//   const [rows] = await conn.query(
-//     "SELECT * FROM users WHERE profile_id = ? LIMIT 1",
-//     [profileId]
-//   );
-//   return rows[0] || null;
-// }
 
 async function getCreditSummary(profileId) {
   const user = await getUserById(profileId);
@@ -368,7 +306,6 @@ module.exports = {
   createUser,
   verifyEmail,
   updateUserPassword,
-  // buyUserCredit,
   getCreditSummary,
   updateUser,
 };

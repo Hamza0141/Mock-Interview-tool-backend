@@ -176,15 +176,6 @@ async function getSpeechWithFeedback(speech_id) {
     if (result.ai_feedback && typeof result.ai_feedback === "string") {
       result.ai_feedback = JSON.parse(result.ai_feedback);
     }
-    //create notification
-    await notificationService.createNotification({
-      profile_id: profile_id,
-      type: "account",
-      title: "Welcome to SelfMock 🎉",
-      body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
-      entity_type: "user",
-      entity_id: speech_id,
-    });
 
     return result;
   } catch (error) {

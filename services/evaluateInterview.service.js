@@ -165,7 +165,7 @@ async function insertAiFeedback(
         //create notification
         await notificationService.createNotification({
           profile_id: profile_id,
-          type: "Interview",
+          type: "interview",
           title: "Interview Result Ready",
           body: `Your Interview "${session_id}", has AI feedback available now.`,
           entity_type: "user",
