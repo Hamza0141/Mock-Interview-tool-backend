@@ -11,8 +11,9 @@ async function verifyOtpRecord({ user_email, otp }) {
   if (!rows.length) {
     return { ok: false, message: "Invalid code" };
   }
-
   const record = rows[0];
+    console.log("record");
+  console.log(record);
   if (new Date(record.expires_at) < new Date() || record.is_used) {
     return { ok: false, message: "Code expired" };
   }

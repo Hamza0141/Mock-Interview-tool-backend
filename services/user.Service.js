@@ -8,6 +8,8 @@ const jwtSecret = process.env.JWT_SECRET;
 const notificationService = require("./notification.service");
 
 const {otpManager} = require("../utils/otpManager")
+//Mailer
+const mailService= require("../middlewares/authMailgun")
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const {verifyOtpRecord}= require("../utils/verificationService")
@@ -22,9 +24,16 @@ async function verifyEmail(req, res) {
         .json({ success: false, message: "Email and code are required." });
     }
 
-    // Reuse the generic logic (this will validate & update verifications table)
-    await verifyOtpRecord({ user_email, otp });
+    // ✅ Check OTP result
+    const { ok, message } = await verifyOtpRecord({ user_email, otp });
 
+    if (!ok) {
+      // ❌ OTP invalid / expired / no user_auth row
+      return res.status(400).json({
+        success: false,
+        message: message || "Invalid or expired code.",
+      });
+    }
     //  Update user table
     await conn.query(
       "UPDATE user_auth SET is_verified = TRUE WHERE user_email = ?",
@@ -192,6 +201,10 @@ const note = "Verify Your Email";
       entity_type: "user",
       entity_id: profile_id,
     });
+await mailService.sendWelcomeEmail({
+  email: user.user_email,
+  firstName,
+});
 
     createdUser = {
       profile_id,

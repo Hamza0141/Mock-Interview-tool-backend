@@ -153,7 +153,6 @@ async function updateStatus(req, res) {
   try {
     const { ticketId } = req.params;
     const { status } = req.body;
-    // const ticketOwnerProfile_id = req.body.ticketOwnerProfile_id;
 
     // If this endpoint is under /api/admin, we know adminAuth ran
     if (!req.admin || req.admin.access_type !== "admin") {
@@ -165,7 +164,6 @@ async function updateStatus(req, res) {
     const result = await ticketService.updateTicketStatus({
       ticket_id: ticketId,
       newStatus: status,
-      // ownerProfile_id: ticketOwnerProfile_id,
     });
 
     return res.json({

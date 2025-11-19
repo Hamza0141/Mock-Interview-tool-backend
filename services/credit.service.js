@@ -1,12 +1,15 @@
 const conn = require("../config/db.config");
 const userService = require("./user.Service");
 const crypto = require("crypto");
+//Mailer
+const mailService= require("../middlewares/authMailgun")
 // import notification
 const notificationService = require("./notification.service");
 
 async function transferCredit(
   senderFirstName, sender_id,
   receiver_email,
+  senderEmail,
   amount
 ) {
   const connection = await conn.getConnection(); // get pooled connection
@@ -64,8 +67,8 @@ async function transferCredit(
       [transfer_id, sender_id || null, receiver_email, amount]
     );
     await connection.commit();
-    //create notification for sender
 
+    //create notification for sender
     await notificationService.createNotification({
       profile_id: sender_id,
       type: "credit",
@@ -86,6 +89,14 @@ async function transferCredit(
       entity_id: transfer_id,
     });
 
+await mailService.sendTransferEmails({
+  senderEmail: senderEmail,
+  receiverEmail: receiver_email,
+  senderName: senderFirstName,
+  receiverName: receiver.first_name,
+  amount,
+});
+
     return {
       success: true,
       message: "Transfer completed",
@@ -97,6 +108,7 @@ async function transferCredit(
         new_sender_balance: senderCredits - amount,
       },
     };
+    
   } catch (error) {
     await connection.rollback();
     console.error("Error in transferCredit:", error);

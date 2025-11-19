@@ -3,17 +3,17 @@ const creditService = require("../services/credit.service");
 async function transferCreditBalance(req, res) {
   try {
 
-      const {user_email,profile_id} = req.user
+      const {profile_id} = req.user
+      const senderEmail = req.user.user_email;
     const { receiver_email, amount } = req.body;
     const senderFirstName = req.user.first_name; 
     
     console.log(profile_id, receiver_email, amount);
     // Basic validation
-        if (receiver_email == user_email) {
+        if (receiver_email == senderEmail) {
           return res.status(400).json({
             success: false,
-            message:
-              "you can't transfer for your self",
+            message: "you can't transfer for your self",
           });
         } 
 
@@ -28,6 +28,7 @@ async function transferCreditBalance(req, res) {
       senderFirstName,
       profile_id,
       receiver_email,
+      senderEmail,
       parseFloat(amount)
     );
 

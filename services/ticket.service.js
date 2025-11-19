@@ -1,9 +1,12 @@
 // services/ticket.service.js
 const conn = require("../config/db.config");
 const crypto = require("crypto");
+//Mailer
+const mailService= require("../middlewares/authMailgun")
 // import notification
 const notificationService = require("./notification.service");
 // simple 8-char id generator
+const getUser= require("./user.Service")
 
 function generateTicketId() {
   const ticket_id = crypto.randomBytes(8).toString("hex");
@@ -166,32 +169,67 @@ async function updateTicketStatus({ ticket_id, newStatus }) {
     throw err;
   }
 
-  const [result] = await conn.query(
-    `
-    UPDATE support_tickets
-    SET status = ?
-    WHERE ticket_id = ?
-    `,
-    [newStatus, ticket_id]
+  // 1️⃣ Fetch the ticket first (to get its owner)
+  const [ticketRows] = await conn.query(
+    `SELECT ticket_id, profile_id, subject 
+     FROM support_tickets 
+     WHERE ticket_id = ?`,
+    [ticket_id]
   );
-  console.log(result);
-  if (result.affectedRows === 0) {
+
+  if (!ticketRows.length) {
     const err = new Error("Ticket not found");
     err.status = 404;
     throw err;
   }
 
-  // await notificationService.createNotification({
-  //   profile_id: ownerProfile_id,
-  //   type: "account",
-  //   title: "Welcome to SelfMock 🎉",
-  //   body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
-  //   entity_type: "user",
-  //   entity_id: ticket_id,
-  // });
+  const ticket = ticketRows[0];
+  const ownerProfileId = ticket.profile_id;
+
+  // 2️⃣ Get full user info using your service
+  const ticketUser = await getUser.getUserById(ownerProfileId);
+
+  if (!ticketUser) {
+    const err = new Error("Ticket owner not found");
+    err.status = 404;
+    throw err;
+  }
+
+  // 3️⃣ Update the ticket status
+  const [result] = await conn.query(
+    `UPDATE support_tickets SET status = ? WHERE ticket_id = ?`,
+    [newStatus, ticket_id]
+  );
+
+  if (result.affectedRows === 0) {
+    const err = new Error("Failed to update ticket status");
+    err.status = 500;
+    throw err;
+  }
+
+  // 4️⃣ Create notification for the user
+  await notificationService.createNotification({
+    profile_id: ownerProfileId,
+    type: "system",
+    title: `Ticket Status Updated`,
+    body: `Your ticket "${ticket.subject}" is now marked as "${newStatus}".`,
+    entity_type: "support_ticket",
+    entity_id: ticket_id,
+  });
+
+  // 5️⃣ Send email to the owner
+  await mailService.sendTicketUpdateEmail({
+    email: ticketUser.user_email,
+    firstName: ticketUser.first_name,
+    ticketId: ticket_id,
+    subject: ticket.subject,
+    status: newStatus,
+    updatedBy: "Support Team",
+  });
 
   return { success: true, status: newStatus };
 }
+
 
 module.exports = {
   createTicket,
