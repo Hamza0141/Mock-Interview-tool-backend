@@ -147,4 +147,81 @@ async function refundCredit(receiver_email, amount, description) {
   }
 }
 
-module.exports = { transferCredit, refundCredit };
+async function getAllCreditPacks() {
+  const [rows] = await conn.query(
+    "SELECT id, name, credits, price_cents FROM credit_packs ORDER BY price_cents ASC"
+  );
+  return rows;
+}
+
+async function createCreditPack({ id, name, credits, price_cents }) {
+  const packId = id || uuidv4();
+
+  await conn.query(
+    `
+      INSERT INTO credit_packs (id, name, credits, price_cents)
+      VALUES (?, ?, ?, ?)
+    `,
+    [packId, name, credits, price_cents]
+  );
+
+  return { id: packId, name, credits, price_cents };
+}
+
+async function updateCreditPack(id, { name, credits, price_cents }) {
+  // You can make this partial update if you want, but here we require all fields
+  await conn.query(
+    `
+      UPDATE credit_packs
+      SET name = ?, credits = ?, price_cents = ?
+      WHERE id = ?
+    `,
+    [name, credits, price_cents, id]
+  );
+
+  const [rows] = await conn.query(
+    "SELECT id, name, credits, price_cents FROM credit_packs WHERE id = ?",
+    [id]
+  );
+  return rows[0] || null;
+}
+
+async function deleteCreditPack(id) {
+  const [result] = await conn.query("DELETE FROM credit_packs WHERE id = ?", [
+    id,
+  ]);
+  return result.affectedRows > 0;
+}
+
+
+async function getCreditSummary(profile_id) {
+
+  const [userRows] = await conn.query(
+    `
+      SELECT credit_balance, free_trial
+      FROM users
+      WHERE profile_id = ?
+    `,
+    [profile_id]
+  );
+
+  const user = userRows[0] || { credit_balance: 0, free_trial: 0 };
+  const packs = await getAllCreditPacks();
+
+  return {
+    credit_balance: user.credit_balance || 0,
+    free_trial: !!user.free_trial,
+    credit_packs: packs,
+  };
+}
+
+
+module.exports = {
+  transferCredit,
+  refundCredit,
+  getAllCreditPacks,
+  createCreditPack,
+  updateCreditPack,
+  deleteCreditPack,
+  getCreditSummary,
+};

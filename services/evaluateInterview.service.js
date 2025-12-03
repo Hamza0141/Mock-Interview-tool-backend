@@ -162,22 +162,9 @@ async function insertAiFeedback(
           ]
         );
 
-        //create notification
-        await notificationService.createNotification({
-          profile_id: profile_id,
-          type: "interview",
-          title: "Interview Result Ready",
-          body: `Your Interview "${session_id}", has AI feedback available now.`,
-          entity_type: "user",
-          entity_id: session_id,
-        });
-        
-      }
-    }
-
-    // ✅ Update session meta once
-    await conn.query(
-      `
+        // ✅ Update session meta once
+        await conn.query(
+          `
       UPDATE interview_sessions
       SET 
         meta_evaluation = CAST(? AS JSON),
@@ -186,15 +173,24 @@ async function insertAiFeedback(
         ended_at = CURRENT_TIMESTAMP
       WHERE interview_id = ?
       `,
-      [
-        JSON.stringify(meta_evaluation),
-        JSON.stringify(behavioral_skill_tags),
-        session_id,
-      ]
-    );
-
-    await conn.commit();
-
+          [
+            JSON.stringify(meta_evaluation),
+            JSON.stringify(behavioral_skill_tags),
+            session_id,
+          ]
+        );
+        await conn.commit();
+      }
+    }
+    //create notification
+    await notificationService.createNotification({
+      profile_id: profile_id,
+      type: "interview",
+      title: "Interview Result Ready",
+      body: `Your Interview "${session_id}", has AI feedback available now.`,
+      entity_type: "user",
+      entity_id: session_id,
+    });
     return {
       success: true,
       message: "AI feedback inserted and session updated",

@@ -1,71 +1,3 @@
-// const FormData = require("form-data");
-// const Mailgun = require("mailgun.js");
-
-// const mailgun = new Mailgun(FormData);
-// const mg = mailgun.client({
-//   username: "api",
-//   key: process.env.MAILGUN_API_KEY,
-// });
-
-// async function sendOTPEmail(email, otp, note ) {
-//   try {
-//     const data = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
-//       from: `Self Mock AI <postmaster@${process.env.MAILGUN_DOMAIN}>`,
-//       to: [email],
-//       subject: `🔐 ${note} - Self Mock AI`,
-//       text: `Your verification code is ${otp}. It expires in 10 minutes.`,
-//       html: `
-//         <div style="
-//           background-color:#f9fafc;
-//           padding:25px;
-//           font-family:'Segoe UI',sans-serif;
-//           color:#333;
-//           border-radius:10px;
-//           max-width:600px;
-//           margin:auto;
-//           box-shadow:0 4px 10px rgba(0,0,0,0.1);
-//         ">
-//           <h2 style="color:#007bff;text-align:center;">🔐 ${note} </h2>
-//           <p style="font-size:16px;line-height:1.6;">
-//             Thank you for signing up for <b>Self Mock AI</b>!  
-//             To activate your account, please use the verification code below.
-//           </p>
-//           <div style="
-//             text-align:center;
-//             background:#007bff;
-//             color:#fff;
-//             font-size:28px;
-//             font-weight:bold;
-//             letter-spacing:3px;
-//             padding:15px 0;
-//             border-radius:8px;
-//             margin:25px 0;
-//           ">
-//             ${otp}
-//           </div>
-//           <p style="font-size:15px;line-height:1.6;text-align:center;">
-//             This code will expire in <b>10 minutes</b>.  
-//             If you didn’t request this, please ignore this message.
-//           </p>
-//           <p style="margin-top:25px;font-size:13px;color:#888;text-align:center;">
-//             — The Self Mock Team
-//           </p>
-//         </div>
-//       `,
-//     });
-
-//     console.log("✅ OTP email sent:", data.id || data.message);
-//     return true;
-//   } catch (error) {
-//     console.error("❌ Failed to send OTP email:", error);
-//     return false;
-//   }
-// }
-
-// module.exports = {
-//   sendOTPEmail,
-// };
-
 
 const FormData = require("form-data");
 const Mailgun = require("mailgun.js");
@@ -76,8 +8,8 @@ const mg = mailgun.client({
   key: process.env.MAILGUN_API_KEY,
 });
 
-const FROM_NAME = "SelfMock";
-const FROM_EMAIL = `SelfMock <postmaster@${process.env.MAILGUN_DOMAIN}>`;
+const FROM_NAME = "Prepare With AI";
+const FROM_EMAIL = `Prepare With AI <support@${process.env.MAILGUN_DOMAIN}>`;
 
 // ---------- Base template helper ----------
 function baseTemplate({ title, intro, contentHtml, footerNote }) {
@@ -104,7 +36,7 @@ function baseTemplate({ title, intro, contentHtml, footerNote }) {
             M
           </span>
           <span style="font-weight:600;font-size:18px;color:#f9fafb;">
-            SelfMock
+            Prepare With AI
           </span>
         </div>
       </div>
@@ -128,12 +60,14 @@ function baseTemplate({ title, intro, contentHtml, footerNote }) {
       </div>
 
       <p style="font-size:12px;line-height:1.5;margin-top:10px;color:#9ca3af;">
-        ${footerNote ||
-          `If you didn't expect this email, you can safely ignore it.`}
+        ${
+          footerNote ||
+          `If you didn't expect this email, you can safely ignore it.`
+        }
       </p>
 
       <p style="margin-top:18px;font-size:12px;color:#6b7280;">
-        — The SelfMock Team<br />
+        — The Prepare With AI Team<br />
         AI-powered mock interviews & speech practice
       </p>
     </div>
@@ -160,7 +94,7 @@ async function sendMail({ to, subject, text, html }) {
 
 // =============== 1) OTP EMAIL (generic) ===============
 async function sendOTPEmail(email, otp, note) {
-  const subject = `🔐 ${note} – SelfMock`;
+  const subject = `🔐 ${note} – Prepare With AI`;
   const text = `Your verification code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`;
 
   const html = baseTemplate({
@@ -231,12 +165,14 @@ async function sendTransferEmails({
   });
 
   // For receiver
-  const receiverSubject = `📥 You Received ${amountStr} on SelfMock`;
+  const receiverSubject = `📥 You Received ${amountStr} on Prepare With AI`;
   const receiverText = `You received ${amountStr} from ${senderName || senderEmail}.`;
 
   const receiverHtml = baseTemplate({
     title: "📥 Credits Received",
-    intro: `Hi ${receiverName || "there"}, credits have been added to your SelfMock account.`,
+    intro: `Hi ${
+      receiverName || "there"
+    }, credits have been added to your Prepare With AI account.`,
     contentHtml: `
       <p style="margin:0 0 8px;font-size:14px;">
         Amount received:
@@ -250,7 +186,7 @@ async function sendTransferEmails({
       </p>
     `,
     footerNote:
-      "You can view your updated credit balance in your SelfMock dashboard.",
+      "You can view your updated credit balance in your Prepare With AI dashboard.",
   });
 
   const senderOk = await sendMail({
@@ -272,16 +208,18 @@ async function sendTransferEmails({
 
 // =============== 3) WELCOME EMAIL FOR NEW ACCOUNT ===============
 async function sendWelcomeEmail({ email, firstName }) {
-  const subject = "🎉 Welcome to SelfMock!";
+  const subject = "🎉 Welcome to Prepare With AI!";
   const text =
-    "Welcome to SelfMock! You can now start practicing job interviews and public speeches with AI-powered feedback.";
+    "Welcome to Prepare With AI! You can now start practicing job interviews and public speeches with AI-powered feedback.";
 
   const html = baseTemplate({
-    title: "🎉 Welcome to SelfMock",
-    intro: `Hi ${firstName || "there"}, thanks for creating an account with SelfMock.`,
+    title: "🎉 Welcome to Prepare With AI",
+    intro: `Hi ${
+      firstName || "there"
+    }, thanks for creating an account with Prepare With AI.`,
     contentHtml: `
       <p style="font-size:14px;margin:0 0 8px;">
-        With SelfMock you can:
+        With Us you can:
       </p>
       <ul style="font-size:14px;line-height:1.6;margin:0 0 4px 18px;color:#e5e7eb;">
         <li>Run realistic, AI-powered mock interviews.</li>
@@ -293,7 +231,7 @@ async function sendWelcomeEmail({ email, firstName }) {
       </p>
     `,
     footerNote:
-      "If you didn’t create this account, please contact us: hamzaserke@gmail.com.",
+      "If you didn’t create this account, please contact us: support@prepwithai.net.",
   });
 
   return sendMail({ to: email, subject, text, html });
@@ -312,7 +250,7 @@ async function sendPaymentReceiptEmail({
   const creditsStr = `${credits} credit${credits === 1 ? "" : "s"}`;
   const subject = `🧾 Payment Receipt – ${amountStr}`;
 
-  const text = `Thank you for your purchase on SelfMock.\nAmount: ${amountStr}\nCredits: ${creditsStr}\nReference: ${paymentIntentId}`;
+  const text = `Thank you for your purchase on Prepare With AI.\nAmount: ${amountStr}\nCredits: ${creditsStr}\nReference: ${paymentIntentId}`;
 
   const dateLabel = createdAt
     ? new Date(createdAt).toLocaleString()
@@ -320,7 +258,9 @@ async function sendPaymentReceiptEmail({
 
   const html = baseTemplate({
     title: "🧾 Payment Receipt",
-    intro: `Hi ${firstName || "there"}, thank you for your purchase on SelfMock.`,
+    intro: `Hi ${
+      firstName || "there"
+    }, thank you for your purchase on Prepare With AI.`,
     contentHtml: `
       <p style="font-size:14px;margin:0 0 8px;">
         Here are your payment details:
@@ -356,7 +296,7 @@ async function sendPaymentReceiptEmail({
       </p>
     `,
     footerNote:
-      "Card processing is handled securely by Stripe. SelfMock only stores non-sensitive transaction references for record keeping.",
+      "Card processing is handled securely by Stripe. Prepare With AI only stores non-sensitive transaction references for record keeping.",
   });
 
   return sendMail({ to: email, subject, text, html });
@@ -413,7 +353,7 @@ async function sendTicketUpdateEmail({
       </p>
     `,
     footerNote:
-      "If you no longer need help on this issue, you can mark the ticket as resolved in your SelfMock account.",
+      "If you no longer need help on this issue, you can mark the ticket as resolved in your Prepare With AI account.",
   });
 
   return sendMail({ to: email, subject, text, html });
