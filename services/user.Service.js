@@ -280,8 +280,6 @@ async function updateUser(updateData, profile_id) {
 }
 
 
-
-
 async function getCreditSummary(profileId) {
   const user = await getUserById(profileId);
   if (!user) throw new Error("User not found");
@@ -311,6 +309,25 @@ async function getCreditSummary(profileId) {
   };
 }
 
+async function getTransactionStatusByPaymentIntentId(
+  paymentIntentId,
+  profileId
+) {
+  const [rows] = await conn.query(
+    `SELECT status
+     FROM credit_transactions
+     WHERE stripe_payment_intent_id = ?
+       AND profile_id = ?
+     ORDER BY id DESC
+     LIMIT 1`,
+    [paymentIntentId, profileId]
+  );
+
+  if (!rows.length) return null;
+  return rows[0].status; // 'pending' | 'completed' | 'failed'
+}
+
+
 
 module.exports = {
   getUserById,
@@ -321,4 +338,5 @@ module.exports = {
   updateUserPassword,
   getCreditSummary,
   updateUser,
+  getTransactionStatusByPaymentIntentId
 };

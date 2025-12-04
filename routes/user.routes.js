@@ -2,25 +2,42 @@ const express = require("express");
 // Call the router method from express to create the router
 const router = express.Router();
 // Import the login controller
-const userAccount = require("../controllers/user.controller");
+const userController = require("../controllers/user.controller");
 const userVerify = require("../services/user.Service");
 const  {verifyToken}  = require ( "../middlewares/auth");
 // Create a route to handle the login request on post
 
 router.post("/api/user/verify-email", userVerify.verifyEmail);
-router.post("/api/user/sendOTP", userAccount.sendUserOtp);
-router.post("/api/user/verify-otp", userAccount.verifyOtp);
-router.post("/api/user/create", userAccount.createUser);
-router.get("/api/user/getuserbyId", verifyToken, userAccount.getIUserByUserId);
-router.post("/api/user/getUserByEmail", verifyToken, userAccount.getUserWithEmail);
-router.post("/api/user/passwordchange", verifyToken ,userAccount.changePassword);
-router.put("/api/user/update", verifyToken, userAccount.updateUserInfo);
+router.post("/api/user/sendOTP", userController.sendUserOtp);
+router.post("/api/user/verify-otp", userController.verifyOtp);
+router.post("/api/user/create", userController.createUser);
+router.get(
+  "/api/user/getuserbyId",
+  verifyToken,
+  userController.getIUserByUserId
+);
+router.post(
+  "/api/user/getUserByEmail",
+  verifyToken,
+  userController.getUserWithEmail
+);
+router.post(
+  "/api/user/passwordchange",
+  verifyToken,
+  userController.changePassword
+);
+router.put("/api/user/update", verifyToken, userController.updateUserInfo);
 
-router.get("/api/user/credits", verifyToken, userAccount.getCreditSummary);
+router.get("/api/user/credits", verifyToken, userController.getCreditSummary);
 router.post(
   "/api/user/credits/payment-intent",
   verifyToken,
-  userAccount.createCreditPaymentIntent
+  userController.createCreditPaymentIntent
+);
+router.get(
+  "/api/user/credits/transaction-status/:payment_intent_id",
+  verifyToken, 
+  userController.getCreditTransactionStatus
 );
 
 

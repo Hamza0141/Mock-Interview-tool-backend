@@ -11,69 +11,103 @@ const mg = mailgun.client({
 const FROM_NAME = "Prepare With AI";
 const FROM_EMAIL = `Prepare With AI <support@${process.env.MAILGUN_DOMAIN}>`;
 
-// ---------- Base template helper ----------
+// ---------- Brand-aware base template helper ----------
 function baseTemplate({ title, intro, contentHtml, footerNote }) {
   return `
     <div style="
-      background-color:#0b1020;
-      padding:24px;
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      color:#e5e7eb;
-      border-radius:16px;
-      max-width:640px;
-      margin:auto;
-      box-shadow:0 18px 45px rgba(0,0,0,0.55);
-      border:1px solid #1f2937;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      padding: 24px;
+      font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color: #e5e7eb;
+      border-radius: 18px;
+      max-width: 640px;
+      margin: 24px auto;
+      box-shadow: 0 20px 60px rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.25);
     ">
+      <!-- Brand header -->
       <div style="text-align:center;margin-bottom:18px;">
-        <div style="display:inline-flex;align-items:center;gap:8px;">
+        <div style="display:inline-flex;align-items:center;gap:10px;">
           <span style="
-            width:34px;height:34px;border-radius:12px;
-            display:inline-flex;align-items:center;justify-content:center;
-            background:linear-gradient(135deg,#f97316,#fb923c);
-            color:#0b1020;font-weight:700;font-size:18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(from 180deg at 50% 50%, #4f46e5, #7c3aed, #ec4899, #4f46e5);
+            color:#0b1020;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 0 18px rgba(129,140,248,0.7);
           ">
-            M
+            P
           </span>
-          <span style="font-weight:600;font-size:18px;color:#f9fafb;">
-            Prepare With AI
-          </span>
+          <div style="text-align:left;">
+            <div style="font-weight:600;font-size:18px;color:#f9fafb;letter-spacing:0.04em;text-transform:uppercase;">
+              Prepare With AI
+            </div>
+            <div style="font-size:11px;color:#9ca3af;">
+              AI-powered interview & speech practice
+            </div>
+          </div>
         </div>
       </div>
 
-      <h2 style="color:#f97316;text-align:left;font-size:22px;margin:0 0 10px;">
+      <!-- Title -->
+      <h2 style="
+        color:#e5e7eb;
+        text-align:left;
+        font-size:22px;
+        margin: 10px 0 8px;
+      ">
         ${title}
       </h2>
 
-      <p style="font-size:14px;line-height:1.6;margin:0 0 14px;color:#e5e7eb;">
+      <!-- Intro -->
+      <p style="
+        font-size:14px;
+        line-height:1.7;
+        margin:0 0 14px;
+        color:#d1d5db;
+      ">
         ${intro}
       </p>
 
+      <!-- Main content card -->
       <div style="
-        margin:14px 0 18px;
-        padding:14px 16px;
-        border-radius:12px;
-        background-color:#020617;
-        border:1px solid #1e293b;
+        margin: 14px 0 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: radial-gradient(circle at top left, rgba(129,140,248,0.14), rgba(15,23,42,0.95));
+        border: 1px solid rgba(75,85,99,0.9);
       ">
         ${contentHtml}
       </div>
 
-      <p style="font-size:12px;line-height:1.5;margin-top:10px;color:#9ca3af;">
+      <!-- Footer note -->
+      <p style="
+        font-size:12px;
+        line-height:1.6;
+        margin-top:10px;
+        color:#9ca3af;
+      ">
         ${
           footerNote ||
           `If you didn't expect this email, you can safely ignore it.`
         }
       </p>
 
+      <!-- Signature -->
       <p style="margin-top:18px;font-size:12px;color:#6b7280;">
         — The Prepare With AI Team<br />
-        AI-powered mock interviews & speech practice
+        Practice interviews & public speaking with AI
       </p>
     </div>
   `;
 }
 
+// ---------- Base mail sender ----------
 async function sendMail({ to, subject, text, html }) {
   try {
     const data = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
@@ -92,7 +126,7 @@ async function sendMail({ to, subject, text, html }) {
   }
 }
 
-// =============== 1) OTP EMAIL (generic) ===============
+// =============== 1) OTP EMAIL (as you had) ===============
 async function sendOTPEmail(email, otp, note) {
   const subject = `🔐 ${note} – Prepare With AI`;
   const text = `Your verification code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`;
@@ -108,14 +142,15 @@ async function sendOTPEmail(email, otp, note) {
       </p>
       <div style="
         text-align:center;
-        background:linear-gradient(135deg,#f97316,#fb923c);
-        color:#111827;
+        background:linear-gradient(135deg,#4f46e5,#7c3aed);
+        color:#f9fafb;
         font-size:28px;
         font-weight:700;
         letter-spacing:0.25em;
         padding:14px 0;
-        border-radius:10px;
+        border-radius:12px;
         margin-top:6px;
+        box-shadow:0 0 20px rgba(129,140,248,0.6);
       ">
         ${otp}
       </div>
@@ -237,72 +272,187 @@ async function sendWelcomeEmail({ email, firstName }) {
   return sendMail({ to: email, subject, text, html });
 }
 
-// =============== 4) STRIPE PAYMENT RECEIPT ===============
-async function sendPaymentReceiptEmail({
+// // =============== 4) STRIPE PAYMENT RECEIPT ===============
+// async function sendPaymentReceiptEmail({
+//   email,
+//   firstName,
+//   amount, 
+//   credits, 
+//   paymentIntentId,
+//   createdAt,
+// }) {
+//   const amountStr = `$${Number(amount || 0).toFixed(2)}`;
+//   const creditsStr = `${credits} credit${credits === 1 ? "" : "s"}`;
+//   const subject = `🧾 Payment Receipt – ${amountStr}`;
+
+//   const text = `Thank you for your purchase on Prepare With AI.\nAmount: ${amountStr}\nCredits: ${creditsStr}\nReference: ${paymentIntentId}`;
+
+//   const dateLabel = createdAt
+//     ? new Date(createdAt).toLocaleString()
+//     : new Date().toLocaleString();
+
+//   const html = baseTemplate({
+//     title: "🧾 Payment Receipt",
+//     intro: `Hi ${
+//       firstName || "there"
+//     }, thank you for your purchase on Prepare With AI.`,
+//     contentHtml: `
+//       <p style="font-size:14px;margin:0 0 8px;">
+//         Here are your payment details:
+//       </p>
+//       <table style="width:100%;font-size:14px;border-collapse:collapse;">
+//         <tr>
+//           <td style="padding:4px 0;color:#9ca3af;">Amount</td>
+//           <td style="padding:4px 0;text-align:right;color:#f97316;font-weight:600;">
+//             ${amountStr}
+//           </td>
+//         </tr>
+//         <tr>
+//           <td style="padding:4px 0;color:#9ca3af;">Credits</td>
+//           <td style="padding:4px 0;text-align:right;color:#22c55e;font-weight:600;">
+//             ${creditsStr}
+//           </td>
+//         </tr>
+//         <tr>
+//           <td style="padding:4px 0;color:#9ca3af;">Date</td>
+//           <td style="padding:4px 0;text-align:right;">
+//             ${dateLabel}
+//           </td>
+//         </tr>
+//         <tr>
+//           <td style="padding:4px 0;color:#9ca3af;">Reference</td>
+//           <td style="padding:4px 0;text-align:right;font-family:monospace;font-size:12px;">
+//             ${paymentIntentId}
+//           </td>
+//         </tr>
+//       </table>
+//       <p style="font-size:13px;margin-top:10px;color:#9ca3af;">
+//         If you have any questions about this charge, please reply to this email.
+//       </p>
+//     `,
+//     footerNote:
+//       "Card processing is handled securely by Stripe. Prepare With AI only stores non-sensitive transaction references for record keeping.",
+//   });
+
+//   return sendMail({ to: email, subject, text, html });
+// }
+async function sendCreditReceiptEmail({
   email,
   firstName,
-  amount, 
-  credits, 
+  credits,
+  amount,
+  currency = "USD",
+  transactionId,
   paymentIntentId,
+  balanceAfter,
   createdAt,
 }) {
-  const amountStr = `$${Number(amount || 0).toFixed(2)}`;
-  const creditsStr = `${credits} credit${credits === 1 ? "" : "s"}`;
-  const subject = `🧾 Payment Receipt – ${amountStr}`;
+  const safeName = firstName || "there";
+  const subject = `🧾 Your credits receipt – Prepare With AI`;
+  const text = `
+Hi ${safeName},
 
-  const text = `Thank you for your purchase on Prepare With AI.\nAmount: ${amountStr}\nCredits: ${creditsStr}\nReference: ${paymentIntentId}`;
+Thanks for purchasing ${credits} practice credits on Prepare With AI.
 
-  const dateLabel = createdAt
-    ? new Date(createdAt).toLocaleString()
-    : new Date().toLocaleString();
+Amount: ${currency.toUpperCase()} ${Number(amount).toFixed(2)}
+Credits purchased: ${credits}
+Transaction ID: ${paymentIntentId || transactionId}
+Date: ${createdAt}
+
+Your new credit balance: ${balanceAfter} credits.
+
+If you didn’t make this purchase or have any questions, just reply to this email.
+
+— The Prepare With AI Team
+`.trim();
+
+  const frontendUrl = process.env.FRONTEND_URL || "https://prepwithai.net";
 
   const html = baseTemplate({
-    title: "🧾 Payment Receipt",
-    intro: `Hi ${
-      firstName || "there"
-    }, thank you for your purchase on Prepare With AI.`,
+    title: "🧾 Your credits receipt",
+    intro: `
+      Hi <b>${safeName}</b>,<br/>
+      Thanks for adding more practice credits to your Prepare With AI account.
+      Here’s a summary of your purchase.
+    `,
     contentHtml: `
-      <p style="font-size:14px;margin:0 0 8px;">
-        Here are your payment details:
-      </p>
-      <table style="width:100%;font-size:14px;border-collapse:collapse;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#e5e7eb;">
         <tr>
-          <td style="padding:4px 0;color:#9ca3af;">Amount</td>
-          <td style="padding:4px 0;text-align:right;color:#f97316;font-weight:600;">
-            ${amountStr}
+          <td align="left" style="padding:4px 0;color:#9ca3af;">
+            Credits purchased
+          </td>
+          <td align="right" style="padding:4px 0;font-weight:600;">
+            ${credits}
           </td>
         </tr>
         <tr>
-          <td style="padding:4px 0;color:#9ca3af;">Credits</td>
-          <td style="padding:4px 0;text-align:right;color:#22c55e;font-weight:600;">
-            ${creditsStr}
+          <td align="left" style="padding:4px 0;color:#9ca3af;">
+            Amount
+          </td>
+          <td align="right" style="padding:4px 0;font-weight:600;">
+            ${currency.toUpperCase()} ${Number(amount).toFixed(2)}
           </td>
         </tr>
         <tr>
-          <td style="padding:4px 0;color:#9ca3af;">Date</td>
-          <td style="padding:4px 0;text-align:right;">
-            ${dateLabel}
+          <td align="left" style="padding:4px 0;color:#9ca3af;">
+            Transaction ID
+          </td>
+          <td align="right" style="padding:4px 0;font-family:monospace;font-size:12px;">
+            ${paymentIntentId || transactionId}
           </td>
         </tr>
         <tr>
-          <td style="padding:4px 0;color:#9ca3af;">Reference</td>
-          <td style="padding:4px 0;text-align:right;font-family:monospace;font-size:12px;">
-            ${paymentIntentId}
+          <td align="left" style="padding:4px 0;color:#9ca3af;">
+            Date
+          </td>
+          <td align="right" style="padding:4px 0;">
+            ${createdAt}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:8px 0 0;border-top:1px dashed rgba(148,163,184,0.6);"></td>
+        </tr>
+        <tr>
+          <td align="left" style="padding:6px 0;color:#9ca3af;">
+            New credit balance
+          </td>
+          <td align="right" style="padding:6px 0;font-weight:600;">
+            ${balanceAfter} credits
           </td>
         </tr>
       </table>
-      <p style="font-size:13px;margin-top:10px;color:#9ca3af;">
-        If you have any questions about this charge, please reply to this email.
-      </p>
+
+      <div style="margin-top:18px;text-align:center;">
+        <a
+          href="${frontendUrl}/dashboard"
+          style="
+            display:inline-block;
+            padding:10px 20px;
+            border-radius:999px;
+            background:linear-gradient(135deg,#4f46e5,#7c3aed);
+            color:#f9fafb;
+            font-size:13px;
+            font-weight:600;
+            text-decoration:none;
+            letter-spacing:0.06em;
+            text-transform:uppercase;
+          "
+        >
+          START PRACTICING NOW
+        </a>
+      </div>
     `,
-    footerNote:
-      "Card processing is handled securely by Stripe. Prepare With AI only stores non-sensitive transaction references for record keeping.",
+    footerNote: `
+      If you didn’t make this purchase, please reply to this email so we can help.
+    `,
   });
 
   return sendMail({ to: email, subject, text, html });
 }
 
-// =============== 5) SUPPORT TICKET UPDATE ===============
+
+
+// =============== 6) SUPPORT TICKET UPDATE ===============
 async function sendTicketUpdateEmail({
   email,
   firstName,
@@ -363,7 +513,8 @@ module.exports = {
   sendOTPEmail,
   sendTransferEmails,
   sendWelcomeEmail,
-  sendPaymentReceiptEmail,
+  // sendPaymentReceiptEmail,
+  sendCreditReceiptEmail,
   sendTicketUpdateEmail,
 };
 

@@ -241,54 +241,6 @@ async function verifyOtp(req, res) {
   }
 }
 
-// async function buyCredit(req, res) {
-//   try {
-//      const profile_id = req.user.profile_id;
-//     const { amount, bought_credit, email } = req.body;
-
-//     if (!profile_id || !amount || !bought_credit || !email) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "All fields are required" });
-//     }
-
-
-//     const user = await userService.getUserByEmail(userEmail);
-//     if (!user) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "User not found" });
-//     }
-//     console.log(user.password_hash);
-//     // 4️⃣ Compare current password
-//     const isMatch = await bcrypt.compare(current_password, user.password_hash);
-//     if (!isMatch) {
-//       return res
-//         .status(401)
-//         .json({ success: false, message: "Current password is incorrect" });
-//     }
-
-//     // 5️⃣ Hash and update new password
-//     const hashedPassword = await bcrypt.hash(new_password, 10);
-//     const result = await userService.updateUserPassword(
-//       userEmail,
-//       hashedPassword
-//     );
-
-//     if (!result.success) {
-//       return res
-//         .status(500)
-//         .json({ success: false, message: "Failed to update password" });
-//     }
-
-//     res
-//       .status(200)
-//       .json({ success: true, message: "Password updated successfully" });
-//   } catch (error) {
-//     console.error("Error changing password:", error);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// }
 
 async function getCreditSummary (req, res)  {
   try {
@@ -339,15 +291,52 @@ async function createCreditPaymentIntent  (req, res) {
 };
 
 
+async function getCreditTransactionStatus(req, res) {
+  try {
+    const profileId = req.user?.profile_id || req.query.profile_id;
+    const { payment_intent_id } = req.params;
+
+    if (!profileId || !payment_intent_id) {
+      return res.status(400).json({
+        success: false,
+        message: "profile_id and payment_intent_id are required",
+      });
+    }
+
+    const status = await userService.getTransactionStatusByPaymentIntentId(
+      payment_intent_id,
+      profileId
+    );
+
+    if (!status) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      status, // 'pending' | 'completed' | 'failed'
+    });
+  } catch (err) {
+    console.error("getCreditTransactionStatus error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error checking transaction" });
+  }
+}
+
+
 module.exports = {
   createUser,
   getIUserByUserId,
   changePassword,
-  // buyCredit,
   updateUserInfo,
   getUserWithEmail,
-  createCreditPaymentIntent,
   getCreditSummary,
   sendUserOtp,
   verifyOtp,
+  createCreditPaymentIntent,
+  getCreditTransactionStatus,
 };
