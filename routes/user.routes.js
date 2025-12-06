@@ -6,7 +6,7 @@ const userController = require("../controllers/user.controller");
 const userVerify = require("../services/user.Service");
 const  {verifyToken}  = require ( "../middlewares/auth");
 // Create a route to handle the login request on post
-
+router.get("/api/user/me", verifyToken, userController.getMe);
 router.post("/api/user/verify-email", userVerify.verifyEmail);
 router.post("/api/user/sendOTP", userController.sendUserOtp);
 router.post("/api/user/verify-otp", userController.verifyOtp);

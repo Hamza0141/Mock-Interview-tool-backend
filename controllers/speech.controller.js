@@ -26,7 +26,8 @@ async function handleSpeechSubmission(req, res) {
 
     if (!success) return res.status(500).json({ success: false, message });
     const speechData = req.body;
-    // 2️⃣ Evaluate speech via AI
+    console.log(speech_title, speech_goal, speech_text);
+    //  Evaluate speech via AI
     const ai_feedback = await SpeechService.evaluateSpeech({
       speechData,
     });

@@ -72,7 +72,7 @@ async function transferCredit(
     await notificationService.createNotification({
       profile_id: sender_id,
       type: "credit",
-      title: "Credits sent ",
+      title: "Credits sent",
       body: `You successfully transferred ${amount} credits to ${receiver_email}.`,
       entity_type: "credit_transfer",
       entity_id: transfer_id,

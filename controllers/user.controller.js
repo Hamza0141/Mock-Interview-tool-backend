@@ -5,6 +5,42 @@ const bcrypt = require("bcrypt");
 const {otpManager} = require("../utils/otpManager");
 const { verifyOtpRecord } = require("../utils/verificationService");
 
+
+
+async function getMe(req, res) {
+  try {
+    const { profile_id } = req.user || {};
+
+    if (!profile_id) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload",
+      });
+    }
+
+    const user = await userService.myInfo(profile_id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    console.error("getMe error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch current user",
+    });
+  }
+}
+
+
 async function createUser(req, res) {
 
   try {
@@ -329,6 +365,7 @@ async function getCreditTransactionStatus(req, res) {
 
 
 module.exports = {
+  getMe,
   createUser,
   getIUserByUserId,
   changePassword,

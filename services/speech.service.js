@@ -74,13 +74,30 @@ async function evaluateSpeech(speechData) {
     const prompt = `
 SYSTEM:
 You are an expert public speaking coach and communication specialist.
-Always respond in strict JSON.
+Always respond ONLY in strict JSON that follows the schema.
+Use a balanced scoring philosophy:  
+- 90–100 = excellent  
+- 75–89 = strong  
+- 60–74 = good  
+- 40–59 = needs improvement  
+- 0–39 = poor
+
+Do NOT be overly strict. If the speech is coherent, structured, and understandable,
+it should score at least in the 60–75 range unless it has serious issues.
 
 USER:
-Evaluate the following speech. Provide specific, constructive feedback on structure, clarity, tone, pacing, emotional impact, and persuasiveness.
+Evaluate the following speech. Provide constructive, detailed feedback on:
+- structure  
+- clarity  
+- tone  
+- engagement  
+- persuasiveness  
+- grammar  
+- overall delivery 
 
-Input:
+Speech Input:
 ${JSON.stringify(speechData, null, 2)}
+
 
 OUTPUT JSON SCHEMA:
 {

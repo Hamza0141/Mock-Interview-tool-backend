@@ -14,6 +14,28 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const {verifyOtpRecord}= require("../utils/verificationService")
 
+
+async function myInfo(profile_id) {
+  const [rows] = await conn.query(
+    `SELECT 
+       profile_id,
+       first_name,
+       last_name,
+       user_email,
+       profession,
+       profile_url,
+       credit_balance,
+       free_trial,
+       created_at,
+       updated_at
+     FROM users 
+     WHERE profile_id = ? 
+     LIMIT 1`,
+    [profile_id]
+  );
+
+  return rows.length > 0 ? rows[0] : null;
+}
 async function verifyEmail(req, res) {
   try {
     const { user_email, otp } = req.body;
@@ -117,6 +139,8 @@ async function getUserById(user_id) {
   const [rows] = await conn.query(query, [user_id]);
   return rows.length > 0 ? rows[0] : null;
 }
+
+ 
 // A function to get employee by email
 async function getUserByEmail(user_email) {
   try {
@@ -196,7 +220,7 @@ const note = "Verify Your Email";
     await notificationService.createNotification({
       profile_id: profile_id,
       type: "system",
-      title: "Welcome to SelfMock 🎉",
+      title: "Welcome to Prepare With AI 🎉",
       body: "Your account has been created. Start your first mock interview or speech practice when you’re ready.",
       entity_type: "user",
       entity_id: profile_id,
@@ -330,6 +354,7 @@ async function getTransactionStatusByPaymentIntentId(
 
 
 module.exports = {
+  myInfo,
   getUserById,
   checkIfUserExists,
   getUserByEmail,
