@@ -50,7 +50,7 @@ const interview_sessions = `CREATE TABLE IF NOT EXISTS interview_sessions (
     interview_id CHAR(36) NOT NULL PRIMARY KEY,
     user_profile_id CHAR(36) NOT NULL,
     job_title VARCHAR(255),
-    job_description VARCHAR(500),
+    job_description LONGTEXT,
     difficulty ENUM('easy','medium','hard') DEFAULT 'medium',
     status ENUM('active','completed') DEFAULT 'active',
     meta_evaluation JSON NULL,
@@ -159,20 +159,6 @@ const support_tickets = `CREATE TABLE IF NOT EXISTS support_tickets (
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
-
-const ticket_messages = `CREATE TABLE IF NOT EXISTS support_ticket_messages (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  ticket_id  CHAR(36) NOT NULL,
-  sender_type ENUM('user', 'admin') NOT NULL,
-  sender_user_profile_id CHAR(36) NULL,
-  sender_admin_profile_id CHAR(36) NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (ticket_id) REFERENCES support_tickets(ticket_id) ON DELETE CASCADE,
-  FOREIGN KEY (sender_user_profile_id) REFERENCES users(profile_id) ON DELETE SET NULL,
-  FOREIGN KEY (sender_admin_profile_id) REFERENCES admin(profile_id) ON DELETE SET NULL
-);`;
-
 const admin = `CREATE TABLE IF NOT EXISTS admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   profile_id CHAR(36) NOT NULL UNIQUE,
@@ -188,6 +174,21 @@ const admin = `CREATE TABLE IF NOT EXISTS admin (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );`;
+
+
+const ticket_messages = `CREATE TABLE IF NOT EXISTS support_ticket_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_id  CHAR(36) NOT NULL,
+  sender_type ENUM('user', 'admin') NOT NULL,
+  sender_user_profile_id CHAR(36) NULL,
+  sender_admin_profile_id CHAR(36) NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (ticket_id) REFERENCES support_tickets(ticket_id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_user_profile_id) REFERENCES users(profile_id) ON DELETE SET NULL,
+  FOREIGN KEY (sender_admin_profile_id) REFERENCES admin(profile_id) ON DELETE SET NULL
+);`;
+
 
 const notifications = `CREATE TABLE IF NOT EXISTS notifications (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -252,8 +253,8 @@ async function createTables() {
     await connection.query(speech_feedback);
     await connection.query(verifications);
     await connection.query(support_tickets);
-    await connection.query(ticket_messages);
     await connection.query(admin);
+    await connection.query(ticket_messages);
     await connection.query(notifications);
     await connection.query(service_feedback);
     await connection.query(user_auth);

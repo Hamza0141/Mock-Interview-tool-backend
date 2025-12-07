@@ -78,7 +78,7 @@ async function generateInterviewQuestions(
   try {
     const prompt = `
       You are an expert HR interviewer.
-      Generate 9 thoughtful, realistic interview questions for a job seeker applying for the position of "${jobTitle}".
+      Generate 10 thoughtful, realistic interview questions for a job seeker applying for the position of "${jobTitle}".
       
       Base the questions on this description: "${jobDescription}".
       with difficulty of: "${difficulty}".
