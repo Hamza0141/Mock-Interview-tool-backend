@@ -3,7 +3,7 @@ const express = require("express");
 const stripe = require("../config/stripe");
 const conn = require("../config/db.config");
 const notificationService = require("../services/notification.service");
-const mailService = require("../middlewares/authMailgun"); // make sure this exports sendCreditReceiptEmail
+const mailService = require("../middlewares/authMailgun"); 
 
 function attachStripeWebhook(app) {
   app.post(

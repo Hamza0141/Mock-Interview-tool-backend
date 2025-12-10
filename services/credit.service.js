@@ -84,7 +84,7 @@ async function transferCredit(
       profile_id: receiverId,
       type: "credit",
       title: "Credits received",
-      body: `You successfully receive ${amount} credits from ${senderFirstName}.`,
+      body: `You receive ${amount} credits from ${senderFirstName}.`,
       entity_type: "credit_transfer",
       entity_id: transfer_id,
     });
