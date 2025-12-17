@@ -78,7 +78,6 @@ async function createUser(req, res) {
 
 async function getIUserByUserId(req, res) {
   try{
-    // const { userid_id } = req.body;
     const userid_id= req.user.profile_id
     const userData = await userService.getUserById(userid_id);
     

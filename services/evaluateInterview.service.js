@@ -181,7 +181,7 @@ async function insertAiFeedback(
       type: "interview",
       title: "Interview Result Ready",
       body: `Your interview "${session_id}" has AI feedback available now.`,
-      entity_type: "user",
+      entity_type: "interview_session",
       entity_id: session_id,
     });
 

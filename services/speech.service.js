@@ -150,7 +150,7 @@ async function saveFeedback(profile_id, speech_id, speech_title, ai_feedback) {
           type: "speech",
           title: "Speech evaluation ready",
           body: `Your speech "${speech_title}" has AI feedback available now.`,
-          entity_type: "user",
+          entity_type: "public_speech",
           entity_id: profile_id,
         });
     

@@ -18,9 +18,6 @@ const notifications = require("./notification.routes");
 const feedback = require("./feedback.routes");
 
 
-// const paymentRoutes = require("./payment.route");
-// const webhookRoutes = require("../controllers/webhook.controller");
-
 // Mount all routes
 router.use(authRoutes);
 router.use(userRoutes);
@@ -41,9 +38,5 @@ router.use(feedback);
 
 
 
-// // Mount payments under /api/payments
-// router.use("/api/payments", paymentRoutes);
-// // Mount Stripe webhook route (separate because it needs raw body)
-// router.use("/api/payments", webhookRoutes);
 
 module.exports = router;

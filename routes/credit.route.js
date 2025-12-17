@@ -16,7 +16,7 @@ router.post(
   creditPackController.transferRefundBalance
 );
 
-router.get("/api/credit-packs", creditPackController.getCreditPacks);
+router.get("/api/credit-packs", verifyToken,creditPackController.getCreditPacks);
 router.post("/api/admin/credit-packs", creditPackController.createCreditPack);
 router.put(
   "/api/admin/credit-packs/:id",
