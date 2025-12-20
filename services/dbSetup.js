@@ -159,22 +159,51 @@ const support_tickets = `CREATE TABLE IF NOT EXISTS support_tickets (
   FOREIGN KEY (profile_id) REFERENCES users(profile_id) ON DELETE CASCADE
 )`;
 
+// const admin = `CREATE TABLE IF NOT EXISTS admin (
+//   id INT AUTO_INCREMENT PRIMARY KEY,
+//   profile_id CHAR(36) NOT NULL UNIQUE,
+//   admin_email VARCHAR(255) NOT NULL UNIQUE,
+//   access_type  ENUM('admin', 'support') DEFAULT 'admin',
+//   first_name VARCHAR(100),
+//   last_name VARCHAR(100),
+//   password_hash VARCHAR(255) NOT NULL,
+//   profession VARCHAR(100),
+//   profile_url VARCHAR(300),
+//   stripe_customer_id VARCHAR(255) NULL,
+//   is_active TINYINT(1) DEFAULT 1,
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+// );`;
+
+const roles = `CREATE TABLE IF NOT EXISTS roles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role_key VARCHAR(30) NOT NULL UNIQUE,   -- 'ADMIN','SUPPORT','INSTRUCTOR'
+  role_name VARCHAR(60) NOT NULL
+)`;
+
+
+
 const admin = `CREATE TABLE IF NOT EXISTS admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   profile_id CHAR(36) NOT NULL UNIQUE,
-  admin_email VARCHAR(255) NOT NULL UNIQUE,
-  access_type  ENUM('admin', 'support') DEFAULT 'admin',
   first_name VARCHAR(100),
   last_name VARCHAR(100),
+  email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  profession VARCHAR(100),
-  profile_url VARCHAR(300),
-  stripe_customer_id VARCHAR(255) NULL,
-  is_active TINYINT(1) DEFAULT 1,
+  role_id INT NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);`;
-
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_admin_role FOREIGN KEY (role_id) REFERENCES roles(id)
+  )`;
+  
+  
+  const autoRun = `INSERT INTO roles (role_key, role_name)
+  VALUES
+   ('ADMIN','Admin'),
+   ('SUPPORT','Support'),
+   ('INSTRUCTOR','Instructor')
+  ON DUPLICATE KEY UPDATE role_name = VALUES(role_name);`;
 
 const ticket_messages = `CREATE TABLE IF NOT EXISTS support_ticket_messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -253,7 +282,9 @@ async function createTables() {
     await connection.query(speech_feedback);
     await connection.query(verifications);
     await connection.query(support_tickets);
+    await connection.query(roles);
     await connection.query(admin);
+    await connection.query(autoRun);
     await connection.query(ticket_messages);
     await connection.query(notifications);
     await connection.query(service_feedback);
