@@ -256,6 +256,34 @@ async function updateUserPassword(userEmail, hashedPassword) {
     return { success: false, error: err };
   }
 }
+async function getCreditSummary(profileId) {
+  const user = await getUserById(profileId);
+  if (!user) throw new Error("User not found");
+
+  // Get available credit packs (you could add WHERE active = 1 later)
+  const [packs] = await conn.query(
+    "SELECT id, name, credits, price_cents FROM credit_packs ORDER BY price_cents ASC"
+  );
+
+  // Last few transactions
+  const [transactions] = await conn.query(
+    `SELECT id, stripe_payment_intent_id, amount, bought_credit, currency, status, created_at
+     FROM credit_transactions
+     WHERE profile_id = ?
+     ORDER BY created_at DESC
+     LIMIT 10`,
+    [profileId]
+  );
+
+  return {
+    profile_id: user.profile_id,
+    user_email: user.user_email,
+    credit_balance: user.credit_balance,
+    free_trial: user.free_trial,
+    credit_packs: packs,
+    recent_transactions: transactions,
+  };
+}
 
 async function updateUser(updateData, profile_id) {
   try {
@@ -304,34 +332,7 @@ async function updateUser(updateData, profile_id) {
 }
 
 
-async function getCreditSummary(profileId) {
-  const user = await getUserById(profileId);
-  if (!user) throw new Error("User not found");
 
-  // Get available credit packs (you could add WHERE active = 1 later)
-  const [packs] = await conn.query(
-    "SELECT id, name, credits, price_cents FROM credit_packs ORDER BY price_cents ASC"
-  );
-
-  // Last few transactions
-  const [transactions] = await conn.query(
-    `SELECT id, stripe_payment_intent_id, amount, bought_credit, currency, status, created_at
-     FROM credit_transactions
-     WHERE profile_id = ?
-     ORDER BY created_at DESC
-     LIMIT 10`,
-    [profileId]
-  );
-
-  return {
-    profile_id: user.profile_id,
-    user_email: user.user_email,
-    credit_balance: user.credit_balance,
-    free_trial: user.free_trial,
-    credit_packs: packs,
-    recent_transactions: transactions,
-  };
-}
 
 async function getTransactionStatusByPaymentIntentId(
   paymentIntentId,
@@ -350,8 +351,6 @@ async function getTransactionStatusByPaymentIntentId(
   if (!rows.length) return null;
   return rows[0].status; // 'pending' | 'completed' | 'failed'
 }
-
-
 
 module.exports = {
   myInfo,
